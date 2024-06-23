@@ -6,26 +6,27 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.future import select
 
 from config import *
-from db.models import User, Subject, Test, Question, Participation, async_session
+from db.models import User, Subject, Test, Question, Participation, AsyncSession
 
 
 # Functions
 async def register_user(message: Message, userID, fullname, region, district, school, roleID, joined_at):
-    async with async_session() as session:
+    async with AsyncSession() as session:
         try:
-            new_user = User(id=userID, fullname=fullname, region=region, district=district, school=school,
+            new_user = User(id = userID, fullname=fullname, region=region, district=district, school=school,
                             roleID=roleID, joined_at=joined_at)
             session.add(new_user)
             await session.commit()
+
             await message.answer("✅ Siz muvaffaqiyatli ro'yxatdan o'tdingiz!")
         except SQLAlchemyError as err:
             await session.rollback()
             print("Error registering user:", err)
-            await message.answer("🚫 Ro'yxatdan o'tish amalga oshmadi. Yana harakat qilib ko'ring.")
+            await message.answer("❌ Ro'yxatdan o'tish amalga oshmadi. Yana urinib ko'ring, balki qaysidir ma'lumot noto'g'ri kiritilgan bo'lishi mumkin.")
 
 
 async def user_is_registered(userID):
-    async with async_session() as session:
+    async with AsyncSession() as session:
         user_role = await session.get(User, userID)
         user_exists = user_role is not None
         print("Foydalanuvchi bazada mavjud emas." if not user_exists else "Foydalanuvchi bazada mavjud.")
@@ -33,34 +34,34 @@ async def user_is_registered(userID):
 
 
 async def get_user_data(userID):
-    async with async_session() as session:
+    async with AsyncSession() as session:
         user_data = await session.get(User, userID)
         return (user_data.fullname, user_data.region, user_data.district, user_data.school,
                 user_data.roleID) if user_data else None
 
 
 async def get_subjects():
-    async with async_session() as session:
+    async with AsyncSession() as session:
         result = await session.execute(select(Subject))
         subjects = result.scalars().all()
         return subjects
 
 
 async def get_subject_id(subject_name):
-    async with async_session() as session:
+    async with AsyncSession() as session:
         result = await session.execute(select(Subject).where(Subject.name == subject_name))
         subject_data = result.scalar_one_or_none()
         return subject_data.subjectID if subject_data else None
 
 
 async def validate_teacher(userID):
-    async with async_session() as session:
+    async with AsyncSession() as session:
         result = await session.get(User, userID)
         return result.roleID == 1 if result else False
 
 
 async def create_test_on_db(ownerID, subjectID, created_at):
-    async with async_session() as session:
+    async with AsyncSession() as session:
         try:
             new_test = Test(ownerID=ownerID, subjectID=subjectID, created_at=created_at)
             session.add(new_test)
@@ -75,7 +76,7 @@ async def create_test_on_db(ownerID, subjectID, created_at):
 # start test function
 async def start_test(testID):
     started_at = datetime.now()
-    async with async_session() as session:
+    async with AsyncSession() as session:
         try:
             stmt = update(Test).where(Test.testID == testID, Test.ended_at.is_(None)).values(is_ongoing=True,
                                                                                              started_at=started_at)
@@ -89,7 +90,7 @@ async def start_test(testID):
 
 
 async def check_if_other_test_is_ongoing(teacherID):
-    async with async_session() as session:
+    async with AsyncSession() as session:
         try:
             result = await session.execute(select(Test).where(Test.ownerID == teacherID, Test.is_ongoing == True))
             ongoing_tests_by_this_user = result.scalars().first()
@@ -100,7 +101,7 @@ async def check_if_other_test_is_ongoing(teacherID):
 
 
 async def get_all_active_tests(teacherID):
-    async with async_session() as session:
+    async with AsyncSession() as session:
         try:
             result = await session.execute(
                 select(Test).where(Test.ownerID == teacherID, Test.is_active == True, Test.is_ongoing == False))
@@ -113,7 +114,7 @@ async def get_all_active_tests(teacherID):
 
 # Merged function: get_all_ongoing_tests and check_if_other_test_is_ongoing
 async def get_all_ongoing_tests(teacherID):
-    async with async_session() as session:
+    async with AsyncSession() as session:
         try:
             result = await session.execute(select(Test).where(Test.ownerID == teacherID, Test.is_ongoing == True))
             ongoing_tests_by_this_user = result.scalars().all()
@@ -124,7 +125,7 @@ async def get_all_ongoing_tests(teacherID):
 
 
 async def is_test_started(testID):
-    async with async_session() as session:
+    async with AsyncSession() as session:
         try:
             result = await session.execute(select(Test.started_at).where(Test.testID == testID))
             started_test = result.scalar_one_or_none()
@@ -135,7 +136,7 @@ async def is_test_started(testID):
 
 
 async def is_test_ended(testID):
-    async with async_session() as session:
+    async with AsyncSession() as session:
         try:
             result = await session.execute(
                 select(Test.ended_at).where(Test.testID == testID, Test.is_ongoing == False, Test.ended_at.isnot(None)))
@@ -149,7 +150,7 @@ async def is_test_ended(testID):
 # finish test function
 async def finish_test(testID):
     finished_at = datetime.now()
-    async with async_session() as session:
+    async with AsyncSession() as session:
         try:
             stmt = update(Test).where(Test.testID == testID, Test.ended_at.is_(None)).values(ended_at=finished_at,
                                                                                              is_ongoing=False,
@@ -164,7 +165,7 @@ async def finish_test(testID):
 
 
 async def create_questions(testID, answers):
-    async with async_session() as session:
+    async with AsyncSession() as session:
         try:
             for answer in answers:
                 created_at = datetime.now()
@@ -180,7 +181,7 @@ async def create_questions(testID, answers):
 
 # STUDENT related tasks
 async def validate_test_request(testID):
-    async with async_session() as session:
+    async with AsyncSession() as session:
         questions = await session.execute(select(Question).where(Question.testID == testID))
         questions = questions.scalars().all()
         if not questions:
@@ -191,14 +192,14 @@ async def validate_test_request(testID):
 
 
 async def check_participation_status(userID, testID):
-    async with async_session() as session:
+    async with AsyncSession() as session:
         res = await session.execute(
             select(Participation).where(Participation.userID == userID, Participation.testID == testID))
         return res.scalar_one_or_none() is not None
 
 
 async def save_participation(userID, testID, score, submitted_at):
-    async with async_session() as session:
+    async with AsyncSession() as session:
         try:
             new_participation = Participation(userID=userID, testID=testID, score=score, submittedAt=submitted_at)
             session.add(new_participation)

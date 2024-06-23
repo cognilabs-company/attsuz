@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean, BigInteger, insert
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlalchemy.orm import declarative_base, relationship
 
@@ -21,7 +21,7 @@ class Role(Base):
 
 class User(Base):
     __tablename__ = 'user'
-    id = Column(Integer, primary_key=True)
+    id = Column(BigInteger, primary_key=True)
     fullname = Column(String(100))
     region = Column(String(100))
     district = Column(String(100))
@@ -40,7 +40,7 @@ class Subject(Base):
 class Test(Base):
     __tablename__ = 'test'
     testID = Column(Integer, primary_key=True)
-    ownerID = Column(Integer, ForeignKey('user.id'))
+    ownerID = Column(BigInteger, ForeignKey('user.id'))
     subjectID = Column(Integer, ForeignKey('subject.subjectID'))
     created_at = Column(DateTime)
     started_at = Column(DateTime, nullable=True)
@@ -63,7 +63,7 @@ class Question(Base):
 class Participation(Base):
     __tablename__ = 'participation'
     participationID = Column(Integer, primary_key=True)
-    userID = Column(Integer, ForeignKey('user.id'))
+    userID = Column(BigInteger, ForeignKey('user.id'))
     testID = Column(Integer, ForeignKey('test.testID'))
     score = Column(Integer)
     submittedAt = Column(DateTime)
@@ -75,12 +75,12 @@ class Participation(Base):
 async def init_models():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-
-
-if __name__ == "__main__":
-    import asyncio
-
-    asyncio.run(init_models())
+        # stmt1 = insert(Role).values(name="O'qituvchi")
+        # stmt2 = insert(Role).values(name="O'quvchi")
+        # await conn.execute(stmt1)
+        # await conn.commit()
+        # await conn.execute(stmt2)
+        # await conn.commit()
 
 
 # # State Management

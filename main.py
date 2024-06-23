@@ -6,17 +6,22 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram import Bot, Dispatcher
 
 from config import *
+from functions.common import router as common_router
 # from functions.teacher import router as teacher_router
 from functions.registration import router as registration_router
+from db.models import init_models
 
 
 async def main() -> None:
     bot = Bot(token=BOT_TOKEN)
     storage = MemoryStorage()
-    dp = Dispatcher(bot, storage=storage)
+    dp = Dispatcher(storage=storage)
 
+    dp.include_router(common_router)
     dp.include_router(registration_router)
     # dp.include_router(teacher_router)
+
+    # await init_models()
     await dp.start_polling(bot)
 
 

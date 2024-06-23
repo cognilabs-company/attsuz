@@ -1,6 +1,10 @@
 import os
 
 from aiogram import types
+from aiogram.utils.keyboard import ReplyKeyboardBuilder
+from dotenv import load_dotenv
+
+load_dotenv()
 
 DB_HOST = os.getenv("DB_HOST")
 DB_USER = os.getenv("DB_USER")
@@ -14,7 +18,7 @@ LOGS_CHANNEL = os.getenv("LOGS_CHANNEL")
 roles = ["O'qituvchi", "O'quvchi"]
 regions = {
     "Toshkent shahri": ["Olmazor tumani", "Shayxontohur tumani", "Uchtepa tumani", "Chilonzor tumani", "Yunusobod tumani", "Mirobod tumani", "Yashnobod tumani", "Yakkasaroy tumani", "Sergeli tumani", "Bektemir tumani", "Yangihayot tumani", "Mirzo Ulug'bek tumani"],
-    "Toshkent viloyati": ["Bekobod tumani", "Bo'ka tumani", "Bo'stonliq tumani", "Chinoz tumani", "Ohangaron tumani", "Oqqo'rg'on tumani", "O'rta Chirchiq tumani", "Parkent tumani", "Piskent tumani", "Qibray tumani", "Quyi Chirchiq tumani", "Toshkent tumani", "Yangiyo'l tumani", "Yuqori Chirchiq tumani", "Zangiota tumani"],
+    "Toshkent viloyati": ["Bekobod shahri","Bekobod tumani", "Bo'ka tumani", "Bo'stonliq tumani", "Chinoz tumani", "Ohangaron tumani", "Oqqo'rg'on tumani", "O'rta Chirchiq tumani", "Parkent tumani", "Piskent tumani", "Qibray tumani", "Quyi Chirchiq tumani", "Toshkent tumani", "Yangiyo'l tumani", "Yuqori Chirchiq tumani", "Zangiota tumani"],
     "Andijon viloyati": ["Ulug'nor tumani", "Baliqchi tumani", "Bo'ston tumani", "Shahrixon tumani", "Oltinko'l tumani", "Asaka tumani", "Marhamat tumani", "Buloqboshi tumani", "Andijon tumani", "Xo'jaobod tumani", "Jalaquduq tumani", "Qo'rg'ontepa tumani", "Xonobod tumani", "Andijon shahri"],
     "Namangan viloyati": ["Namangan tumani", "Mingbuloq tumani", "Kosonsoy tumani", "Pop tumani", "To'raqo'rg'on tumani", "Uychi tumani", "Chortoq tumani", "Yangiqo'rg'on tumani", "Norin tumani", "Uchqo'rg'on tumani", "Chust tumani", "Namangan shahri tumani", "Namangan shahri"],
     "Farg'ona viloyati": ["Oltiariq tumani", "Bag'dod tumani", "Beshariq tumani", "Buvayda tumani", "Dang'ara tumani", "Farg'ona tumani", "Furqat tumani", "Qo'shtepa tumani", "Quva tumani", "Rishton tumani", "So'x tumani", "Toshloq tumani", "Uchko'prik tumani", "O'zbekiston tumani", "Yozyovon tumani", "Farg'ona shahri"],
@@ -38,6 +42,9 @@ button_names = {
 }
 
 # Buttons
+menu_buttons = ReplyKeyboardBuilder()
+menu_buttons.add(*[types.KeyboardButton(text=txt) for txt in button_names.values()])
+menu_buttons.adjust(2)
 # menu_buttons = [types.KeyboardButton(button_names["myinfo"]), types.KeyboardButton(button_names["help"]), types.KeyboardButton(button_names["create"])]
 # student_menu = [types.KeyboardButton(button_names["myinfo"]), types.KeyboardButton(button_names["help"]), types.KeyboardButton(button_names["solve"])]
 # start_keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
