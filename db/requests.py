@@ -117,9 +117,9 @@ async def get_all_active_tests(teacherID):
     async with AsyncSession() as session:
         try:
             result = await session.execute(
-                select(Test).where(Test.ownerID == teacherID, Test.is_active == True, Test.is_ongoing == False))
+                select(Test.testID).where(Test.ownerID == teacherID, Test.is_active == True, Test.is_ongoing == False))
             active_tests_by_this_user = result.scalars().all()
-            return active_tests_by_this_user
+            return list(active_tests_by_this_user)
         except SQLAlchemyError as e:
             print(f"Error in get_all_active_tests(): {e}")
             return []
@@ -128,7 +128,7 @@ async def get_all_active_tests(teacherID):
 async def get_all_ongoing_tests(teacherID):
     async with AsyncSession() as session:
         try:
-            result = await session.execute(select(Test).where(Test.ownerID == teacherID, Test.is_ongoing == True))
+            result = await session.execute(select(Test.testID).where(Test.ownerID == teacherID, Test.is_ongoing == True))
             ongoing_tests_by_this_user = result.scalars().all()
             return ongoing_tests_by_this_user
         except SQLAlchemyError as e:
