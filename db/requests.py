@@ -26,12 +26,23 @@ async def register_user(message: Message, userID, fullname, region, district, sc
             await message.answer("❌ Ro'yxatdan o'tish amalga oshmadi. Yana urinib ko'ring, balki qaysidir ma'lumot noto'g'ri kiritilgan bo'lishi mumkin.")
 
 
-# async def user_is_registered(userID):
-#     async with AsyncSession() as session:
-#         user_role = await session.get(User, userID)
-#         user_exists = user_role is not None
-#         print("Foydalanuvchi bazada mavjud emas." if not user_exists else "Foydalanuvchi bazada mavjud.")
-#         return user_role.roleID if user_role else None
+async def user_is_registered(userID):
+    async with AsyncSession() as session:
+        try:
+            user = await session.execute(select(User).where(User.id == userID))
+            user_data = user.scalars().first()
+            
+            if user_data:
+                data = (user_data.fullname, user_data.region, user_data.district, user_data.school, user_data.role)
+                print(data)
+                print("Foydalanuvchi bazada mavjud.")
+                return data
+            else:
+                print("Foydalanuvchi bazada mavjud emas.")
+        except SQLAlchemyError as err:
+            await session.rollback()
+            print("user_is_registered() da muammo:", err)
+            return None
 
 
 async def get_user_data(message: Message, userID):
@@ -52,6 +63,24 @@ async def get_user_data(message: Message, userID):
             else:
                 await message.answer("🚫 Kechirasiz, siz ro'yxatdan o'tmagansiz. Ro'yxatdan o'tish uchun /register komandasini bosing.", reply_markup=menu_buttons.as_markup(resize_keyboard=True))
                 
+
+async def get_teacher_name(testID):
+    async with AsyncSession() as session:
+        # try:
+            user = await session.execute(
+                select(Test.ownerID).where(Test.testID == testID)
+            )
+            user_id = user.scalars().first()
+            teacher = await session.execute(
+                select(User.fullname).where(User.id == user_id)
+            )
+            teacher_name = teacher.scalars().first()
+            return teacher_name
+        # except SQLAlchemyError as e:
+        #     await session.rollback()
+        #     print("Get_teacher_name() error:", e)
+        #     return None
+    
 
 # async def get_subjects():
 #     async with AsyncSession() as session:
@@ -186,9 +215,9 @@ async def get_all_correct_answers(testID):
         try:
             stmt = select(Test.answers).where(Test.testID == testID)
             result = await session.execute(stmt)
-            correct_answers = result.scalars.all()
+            correct_answers = result.scalars().all()
 
-            return correct_answers
+            return correct_answers[0]
         except SQLAlchemyError as e:
             print(f"Error in finish_test(): {e}")
             return False

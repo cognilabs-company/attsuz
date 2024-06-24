@@ -94,9 +94,9 @@ async def get_start_test(call: types.CallbackQuery, state: FSMContext):
     is_started = await requests.start_test(test)
 
     if is_started:
-        await call.message.answer(f"{test_repr}-test boshlandi.")
+        await call.message.edit_text(f"{test_repr}-test boshlandi.")
     else:
-        await call.message.answer("Testni boshlashda muammo yuzaga keldi.")
+        await call.message.edit_text("Testni boshlashda muammo yuzaga keldi.")
 
 
 @router.message(Command("finishtest"))
@@ -124,9 +124,9 @@ async def get_finish_test(call: types.CallbackQuery, state: FSMContext):
     is_finished = await requests.finish_test(test)
 
     if is_finished:
-        await call.message.answer(f"{test_repr}-test yakunlandi.")
+        await call.message.edit_text(f"{test_repr}-test yakunlandi.")
 
         # Excel generated
     
     else:
-        await call.message.answer("Testni tugatishda muammo yuzaga keldi.")
+        await call.message.edit_text("Testni tugatishda muammo yuzaga keldi.")

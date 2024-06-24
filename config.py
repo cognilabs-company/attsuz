@@ -3,6 +3,7 @@ import os
 from aiogram import types
 from aiogram.utils.keyboard import ReplyKeyboardBuilder,InlineKeyboardBuilder
 from dotenv import load_dotenv
+from aiogram import Bot
 
 load_dotenv()
 
@@ -65,6 +66,9 @@ student_buttons.adjust(3)
 verify_buttons = InlineKeyboardBuilder()
 verify_buttons.add(types.InlineKeyboardButton(text="✅ Tasdiqlayman", callback_data="verify"), types.InlineKeyboardButton(text="❌ Bekor qilaman", callback_data="cancel"))
 verify_buttons.adjust(2)
+
+
+bot = Bot(token=BOT_TOKEN)
 
 def test_id_repr(testID):
     # This method converts integer test ID to string representation: 12 -> 000012

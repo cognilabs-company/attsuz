@@ -14,7 +14,6 @@ from db.models import init_models
 
 
 async def main() -> None:
-    bot = Bot(token=BOT_TOKEN)
     storage = MemoryStorage()
     dp = Dispatcher(storage=storage)
 

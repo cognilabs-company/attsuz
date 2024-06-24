@@ -8,6 +8,8 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from states.test import TestSolve
 from config import *
 from db import requests
+from db import messages
+from certigen import generate_certificate
 
 
 router = Router()
@@ -28,9 +30,11 @@ async def solve_test(message: types.Message, state: FSMContext):
 async def get_test_id(message: types.Message, state: FSMContext):
     testID = int(message.text)
     test_exists = await requests.validate_test_request(testID)
+    is_test_started = await requests.is_test_started(testID)
+    is_test_ended = await requests.is_test_ended(testID)
     is_participated_before = await requests.check_participation_status(message.chat.id, testID)
 
-    if test_exists:
+    if test_exists and is_test_started and not is_test_ended:
         if is_participated_before:
             await message.answer("Kechirasiz, testga faqat 1 marta qatnashish mumkin.")
         else:
@@ -38,7 +42,7 @@ async def get_test_id(message: types.Message, state: FSMContext):
             await message.answer("Javoblaringizni kiriting, masalan <b>AABDC</b>:", parse_mode="HTML")
             await state.set_state(TestSolve.waiting_for_answers_solution)
     else:
-        await message.answer("Bunday test mavjud emas. Iltimos yana tekshirib ko'ring va qaytadan /solve komandasini bosing.")
+        await message.answer("Bunday test mavjud emas, yoki bu test boshlanmagan/yakunlangan. Iltimos yana tekshirib ko'ring va qaytadan /solve komandasini bosing.")
 
 
 @router.message(TestSolve.waiting_for_answers_solution)
@@ -68,10 +72,20 @@ async def verify_solution(call: types.CallbackQuery, state: FSMContext):
     
     if is_verified:
         if correct_answers:
+            await generate_certificate(call.message.chat.id, data['testID'])
             are_solutions_submitted = await requests.save_participation(call.message.chat.id, data['testID'], score, submitted_at)
             if are_solutions_submitted:
                 await call.message.answer("Javoblaringiz qabul qilindi!")
                 await state.clear()
+
+                user_data = await requests.user_is_registered(call.message.chat.id)
+                fullname = user_data[0]
+                school = user_data[3]
+                score_p = str((score / len(student_answers)) * 100)[:5]
+
+                print(user_data)
+                await call.message.answer(messages.student_report(fullname, school, data['testID'], student_answers, score, score_p, submitted_at), parse_mode="HTML")
+                # await generate_certificate(call.message.chat.id, data['testID'])
             else:
                 call.message.answer("Javoblarni tekshirishda muammo yuzaga keldi.")
                 await state.clear()

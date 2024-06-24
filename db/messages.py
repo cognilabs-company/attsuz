@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import pytz
+from config import *
 
 
 help_msg = """☝️ Mazkur bot testlar yechish maqsadida foydalaniladi. O'qituvchi test yaratadi, o'quvchi esa uni yechadi va natijasini bilib oladi. Quyida botda mavjud komandalar bilan tanishasiz:
@@ -40,3 +41,18 @@ Joriy vaqt: {curr_time}
 
 
     return msg
+
+
+
+def student_report(fullname, school, testID, student_answers, score, score_p, submitted_at):
+    report_msg = f"""👤 Foydalanuvchi: <b>{fullname}</b>
+🏫 Maktab: <b>{school}</b>
+📖 Test kodi: <b>{test_id_repr(testID)}</b>
+✏️ Jami savollar soni: <b>{len(student_answers)} ta</b>
+✅ To'g'ri javoblar soni: <b>{score} ta</b>
+🔣 Foiz : <b>{score_p}</b> %
+
+🕐 Topshirilgan vaqti: <b>{submitted_at}</b>
+    """
+    
+    return report_msg
