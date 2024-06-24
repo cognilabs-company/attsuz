@@ -6,7 +6,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.future import select
 
 from config import *
-from db.models import User, Test, Question, Participation, AsyncSession
+from db.models import User, Test, Participation, AsyncSession
 from .messages import myinfo_msg
 
 
@@ -26,12 +26,12 @@ async def register_user(message: Message, userID, fullname, region, district, sc
             await message.answer("❌ Ro'yxatdan o'tish amalga oshmadi. Yana urinib ko'ring, balki qaysidir ma'lumot noto'g'ri kiritilgan bo'lishi mumkin.")
 
 
-async def user_is_registered(userID):
-    async with AsyncSession() as session:
-        user_role = await session.get(User, userID)
-        user_exists = user_role is not None
-        print("Foydalanuvchi bazada mavjud emas." if not user_exists else "Foydalanuvchi bazada mavjud.")
-        return user_role.roleID if user_role else None
+# async def user_is_registered(userID):
+#     async with AsyncSession() as session:
+#         user_role = await session.get(User, userID)
+#         user_exists = user_role is not None
+#         print("Foydalanuvchi bazada mavjud emas." if not user_exists else "Foydalanuvchi bazada mavjud.")
+#         return user_role.roleID if user_role else None
 
 
 async def get_user_data(message: Message, userID):
@@ -46,9 +46,9 @@ async def get_user_data(message: Message, userID):
 
             if user_data:
                 data = (user_data.fullname, user_data.region, user_data.district, user_data.school,
-                user_data.roleID)
+                user_data.role)
                 msg = myinfo_msg(*data)
-                await message.answer(msg)
+                await message.answer(msg, parse_mode="HTML")
             else:
                 await message.answer("🚫 Kechirasiz, siz ro'yxatdan o'tmagansiz. Ro'yxatdan o'tish uchun /register komandasini bosing.", reply_markup=menu_buttons.as_markup(resize_keyboard=True))
                 
@@ -69,14 +69,19 @@ async def get_user_data(message: Message, userID):
 
 async def validate_teacher(userID):
     async with AsyncSession() as session:
-        result = await session.get(User, userID)
-        return result.role == 1 if result else False
+        async with session.begin():
+            role = await session.execute(
+                select(User.role).where(User.id == userID)
+            )
+            role_result = role.scalars().first()
+            print("Role: ", role_result)
+            return role_result
 
 
-async def create_test_on_db(ownerID, subject, created_at):
+async def create_test_on_db(ownerID: int, subject: str, created_at: str, answers: str):
     async with AsyncSession() as session:
         try:
-            new_test = Test(ownerID=ownerID, subject=subject, created_at=created_at)
+            new_test = Test(ownerID=ownerID, subject=subject, created_at=created_at, answers=answers)
             session.add(new_test)
             await session.commit()
             return new_test.testID
@@ -176,38 +181,62 @@ async def finish_test(testID):
             return False
 
 
-async def create_questions(testID, answers):
+async def get_all_correct_answers(testID):
     async with AsyncSession() as session:
         try:
-            for answer in answers:
-                created_at = datetime.now()
-                new_question = Question(testID=testID, answer=answer, created_at=created_at)
-                session.add(new_question)
-            await session.commit()
-            return True
-        except SQLAlchemyError as err:
-            await session.rollback()
-            print("Savol yaratish jarayonida muammo yuzaga keldi:", err)
+            stmt = select(Test.answers).where(Test.testID == testID)
+            result = await session.execute(stmt)
+            correct_answers = result.scalars.all()
+
+            return correct_answers
+        except SQLAlchemyError as e:
+            print(f"Error in finish_test(): {e}")
             return False
+
+
+# async def create_questions(testID, answers):
+#     async with AsyncSession() as session:
+#         try:
+#             for answer in answers:
+#                 created_at = datetime.now()
+#                 new_question = Question(testID=testID, answer=answer, created_at=created_at)
+#                 session.add(new_question)
+#             await session.commit()
+#             return True
+#         except SQLAlchemyError as err:
+#             await session.rollback()
+#             print("Savol yaratish jarayonida muammo yuzaga keldi:", err)
+#             return False
 
 
 async def validate_test_request(testID):
     async with AsyncSession() as session:
-        questions = await session.execute(select(Question).where(Question.testID == testID))
-        questions = questions.scalars().all()
-        if not questions:
-            return False
-        else:
-            num_questions = len(questions)
-            return questions, num_questions
+        try:
+            result = await session.execute(select(Test.testID).where(Test.testID == testID))
+            is_test_exists = result.scalars().first()
+            return is_test_exists
+        except SQLAlchemyError as e:
+            print(f"Error in get_all_ongoing_tests(): {e}")
+            return []
+
+        # questions = await session.execute(select(Question).where(Question.testID == testID))
+        # questions = questions.scalars().all()
+        # if not questions:
+        #     return False
+        # else:
+        #     num_questions = len(questions)
+        #     return questions, num_questions
 
 
 async def check_participation_status(userID, testID):
     async with AsyncSession() as session:
-        res = await session.execute(
-            select(Participation).where(Participation.userID == userID, Participation.testID == testID))
-        return res.scalar_one_or_none() is not None
-
+        try:
+            result = await session.execute(
+                select(Participation).where(Participation.userID == userID, Participation.testID == testID))
+            return result.scalar_one_or_none() is not None
+        except SQLAlchemyError as e:
+            print(f"Error in get_all_ongoing_tests(): {e}")
+            return []
 
 async def save_participation(userID, testID, score, submitted_at):
     async with AsyncSession() as session:

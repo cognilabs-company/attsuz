@@ -15,9 +15,15 @@ router = Router()
 
 @router.message(Command("create"))
 async def create_test(message: types.Message, state: FSMContext):
-    # add validate teacher
-    await message.answer("Fanni kiriting, masalan <b>Matematika</b>:", parse_mode="HTML", reply_markup=None)
-    await state.set_state(TestCreation.waiting_for_subject)
+    is_teacher = await requests.validate_teacher(message.chat.id)
+
+    if is_teacher == 1:
+        await message.answer("Fanni kiriting, masalan <b>Matematika</b>:", parse_mode="HTML", reply_markup=None)
+        await state.set_state(TestCreation.waiting_for_subject)
+    elif is_teacher == 2:
+        await message.answer("Hurmatli foydalanuvchi, siz o'quvchi sifatida ro'yxatdan o'tgansiz. Siz test yarata olmaysiz!")
+    else:
+        await message.answer("Hurmatli foydalanuvchi, siz botda ro'yxatdan o'tmagansiz. Ro'yxatdan o'tish uchun /register komandasini bosing.")
 
 
 @router.message(TestCreation.waiting_for_subject)
@@ -39,27 +45,26 @@ async def get_answers(message: types.Message, state: FSMContext):
 @router.callback_query(TestCreation.waiting_for_verify)
 async def get_verification(call: types.CallbackQuery, state: FSMContext):
     is_verified = 1 if call.data == "verify" else 0
+    await call.message.edit_text(f"✅ Tasdiqlandi." if is_verified else "❌ Bekor qilindi.")
+
     data = await state.get_data()
     created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
     if is_verified:
-        testID = await requests.create_test_on_db(call.message.chat.id, data['subject'], created_at)
-        are_questions_created = await requests.create_questions(testID, data['answers'])
+        is_test_created = await requests.create_test_on_db(call.message.chat.id, data['subject'], created_at, data['answers'])
+        # are_questions_created = await requests.create_questions(testID, data['answers'])
 
-        if are_questions_created:
-            testID_repr = test_id_repr(testID)
-            await call.message.answer(f"""Test muvaffaqiyatli yaratildi. Test IDsi: {testID_repr}.
+        if is_test_created:
+            testID_repr = test_id_repr(is_test_created)
+            await call.message.answer(f"""Test IDsi: <b>{testID_repr}</b>.
                                       
-Testni boshlash uchun /starttest komandasini bosing.""")
-            await call.message.delete()
+Testni boshlash uchun /starttest komandasini bosing.""", parse_mode="HTML")
             state.clear()
         else:
             await call.message.answer(f"Test yaratish jarayonida muammo yuzaga keldi.")
-            await call.message.delete()
             state.clear()
     else:
-        await call.message.answer("Siz testni bekor qildingiz. Yangi yaratish uchun /create komandasini bosing.")
-        await call.message.delete()
+        await call.message.answer("Yangi test yaratish uchun /create komandasini bosing.")
         state.clear()
 
 

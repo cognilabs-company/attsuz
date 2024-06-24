@@ -1,4 +1,5 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+import pytz
 
 
 help_msg = """☝️ Mazkur bot testlar yechish maqsadida foydalaniladi. O'qituvchi test yaratadi, o'quvchi esa uni yechadi va natijasini bilib oladi. Quyida botda mavjud komandalar bilan tanishasiz:
@@ -20,8 +21,10 @@ help_msg = """☝️ Mazkur bot testlar yechish maqsadida foydalaniladi. O'qituv
 """
 
 def myinfo_msg(fullname, region, district, school, role):
-    role_emoji = "🧑‍🏫" if role == "O'qituvchi" else "🧑‍🎓"
-    curr_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    role_emoji = "🧑‍🏫" if role == 1 else "🧑‍🎓"
+    role_str = "O'qituvchi" if role == 1 else "O'quvchi"
+    timezone = pytz.timezone("Asia/Tashkent")
+    curr_time = datetime.now(timezone).strftime('%Y-%m-%d %H:%M:%S')
     msg = f"""ℹ️ Sizning ma'lumotlaringiz:
 ------------------------------------------------------------
 👤 Ism: <b>{fullname}</b>
@@ -30,7 +33,7 @@ def myinfo_msg(fullname, region, district, school, role):
 📍 Tuman: <b>{district}</b>
 
 🏫 Maktab: <b>{school}</b>
-{role_emoji} Kasb: <b>{role}</b>
+{role_emoji} Rol: <b>{role_str}</b>
 -----------------------------------------------------------
 Joriy vaqt: {curr_time}
     """

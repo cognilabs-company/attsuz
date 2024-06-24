@@ -49,17 +49,18 @@ class Test(Base):
     ended_at = Column(DateTime, nullable=True)
     is_ongoing = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
+    answers = Column(String(100), nullable=True)
     owner = relationship("User")
     # subject = relationship("Subject")
 
 
-class Question(Base):
-    __tablename__ = 'question'
-    questionID = Column(Integer, primary_key=True)
-    testID = Column(Integer, ForeignKey('test.testID'))
-    answer = Column(Enum("A", "B", "C", "D", "E"))
-    created_at = Column(DateTime)
-    test = relationship("Test")
+# class Question(Base):
+#     __tablename__ = 'question'
+#     questionID = Column(Integer, primary_key=True)
+#     testID = Column(Integer, ForeignKey('test.testID'))
+#     answer = Column(Enum("A", "B", "C", "D", "E"))
+#     created_at = Column(DateTime)
+#     test = relationship("Test")
 
 
 class Participation(Base):

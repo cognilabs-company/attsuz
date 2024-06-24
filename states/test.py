@@ -9,3 +9,9 @@ class TestCreation(StatesGroup):
 class TestManage(StatesGroup):
     waiting_for_test_id_to_start = State()
     waiting_for_test_id_to_finish = State()
+
+
+class TestSolve(StatesGroup):
+    waiting_for_test_id_to_solve = State()
+    waiting_for_answers_solution = State()
+    waiting_for_verify_solutions = State()
