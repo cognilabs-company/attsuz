@@ -1,7 +1,7 @@
 import os
 
 from aiogram import types
-from aiogram.utils.keyboard import ReplyKeyboardBuilder
+from aiogram.utils.keyboard import ReplyKeyboardBuilder,InlineKeyboardBuilder
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -35,29 +35,36 @@ regions = {
 
 
 button_names = {
+    "register": "✏️ Ro'yxatdan o'tish",
     "myinfo": "👤 Mening ma'lumotlarim",
     "help": "🆘 Yordam",
     "create": "📝 Test yaratish",
-    "solve": "/solve"
+    "solve": "📝 Test yechish"
 }
 
-# Buttons
+
+"""Main menu buttons for new users (not registered)"""
+intro_buttons = ReplyKeyboardBuilder()
+intro_buttons.add(types.KeyboardButton(text=button_names["register"]), types.KeyboardButton(text=button_names["help"]))
+intro_buttons.adjust(2)
+
+
+"""Main Menu buttons for registered teachers"""
 menu_buttons = ReplyKeyboardBuilder()
-menu_buttons.add(*[types.KeyboardButton(text=txt) for txt in button_names.values()])
-menu_buttons.adjust(2)
-# menu_buttons = [types.KeyboardButton(button_names["myinfo"]), types.KeyboardButton(button_names["help"]), types.KeyboardButton(button_names["create"])]
-# student_menu = [types.KeyboardButton(button_names["myinfo"]), types.KeyboardButton(button_names["help"]), types.KeyboardButton(button_names["solve"])]
-# start_keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-# start_keyboard.add(*menu_buttons)  
-# student_start_kb = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-# student_start_kb.add(*student_menu)  
+menu_buttons.add(*[types.KeyboardButton(text=txt) for txt in list(button_names.values())[1:3]])
+menu_buttons.adjust(3)
 
-# test_create_again_markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-# test_create_again_markup.add(types.KeyboardButton(button_names["create"]))
 
-# solve_again_markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-# solve_again_markup.add(types.KeyboardButton(button_names['solve']))
+"""Main Menu buttons for registered students"""
+student_buttons = ReplyKeyboardBuilder()
+student_buttons.add(types.KeyboardButton(text=button_names["myinfo"]), types.KeyboardButton(text=button_names['help']), types.KeyboardButton(text=button_names['solve']))
+student_buttons.adjust(3)
 
+
+"""Validation"""
+verify_buttons = InlineKeyboardBuilder()
+verify_buttons.add(types.InlineKeyboardButton(text="✅ Tasdiqlayman", callback_data="verify"), types.InlineKeyboardButton(text="❌ Bekor qilaman", callback_data="cancel"))
+verify_buttons.adjust(2)
 
 def test_id_repr(testID):
     # This method converts integer test ID to string representation: 12 -> 000012

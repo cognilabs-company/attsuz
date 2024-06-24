@@ -27,27 +27,11 @@ async def help_handler_text(message: types.Message):
 
 @router.message(Command("myinfo"))
 async def myinfo_handler(message: types.Message):
-    user_data = await requests.get_user_data(message.chat.id)
-
-    if user_data:
-        fullname, region, district, school, roleID = user_data
-        role = "O'qituvchi" if roleID == 1 else "O'quvchi"
-        msg = messages.myinfo_msg(fullname, region, district, school, role)
-        await message.answer(msg, parse_mode="HTML", reply_markup=menu_buttons.as_markup(resize_keyboard=True))
-    
-    else:
-        message.answer("🚫 Kechirasiz, siz ro'yxatdan o'tmagansiz. Ro'yxatdan o'tish uchun /register komandasini bosing.", reply_markup=menu_buttons.as_markup(resize_keyboard=True))
+    user_data = await requests.get_user_data(message=message, userID=message.chat.id)
+    print(user_data)
 
 
 @router.message(F.text == button_names['myinfo'])
 async def myinfo_handler_text(message: types.Message):
-    user_data = await requests.get_user_data(message.chat.id)
-
-    if user_data:
-        fullname, region, district, school, roleID = user_data
-        role = "O'qituvchi" if roleID == 1 else "O'quvchi"
-        msg = messages.myinfo_msg(fullname, region, district, school, role)
-        await message.answer(msg, parse_mode="HTML", reply_markup=menu_buttons.as_markup(resize_keyboard=True))
-    
-    else:
-        message.answer("🚫 Kechirasiz, siz ro'yxatdan o'tmagansiz. Ro'yxatdan o'tish uchun /register komandasini bosing.", reply_markup=menu_buttons.as_markup(resize_keyboard=True))
+    user_data = await requests.get_user_data(message=message, userID=message.chat.id)
+    print(user_data)

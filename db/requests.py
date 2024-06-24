@@ -7,14 +7,15 @@ from sqlalchemy.future import select
 
 from config import *
 from db.models import User, Test, Question, Participation, AsyncSession
+from .messages import myinfo_msg
 
 
 # Functions
-async def register_user(message: Message, userID, fullname, region, district, school, roleID, joined_at):
+async def register_user(message: Message, userID, fullname, region, district, school, role, joined_at):
     async with AsyncSession() as session:
         try:
             new_user = User(id = userID, fullname=fullname, region=region, district=district, school=school,
-                            roleID=roleID, joined_at=joined_at)
+                            role=role, joined_at=joined_at)
             session.add(new_user)
             await session.commit()
 
@@ -33,12 +34,24 @@ async def user_is_registered(userID):
         return user_role.roleID if user_role else None
 
 
-async def get_user_data(userID):
+async def get_user_data(message: Message, userID):
     async with AsyncSession() as session:
-        user_data = await session.get(User, userID)
-        return (user_data.fullname, user_data.region, user_data.district, user_data.school,
-                user_data.roleID) if user_data else None
+        async with session.begin():
+            user = await session.execute(
+                select(User).where(User.id == userID)
+            )
+            print(user)
+            user_data = user.scalars().first()
+            print(user_data)
 
+            if user_data:
+                data = (user_data.fullname, user_data.region, user_data.district, user_data.school,
+                user_data.roleID)
+                msg = myinfo_msg(*data)
+                await message.answer(msg)
+            else:
+                await message.answer("🚫 Kechirasiz, siz ro'yxatdan o'tmagansiz. Ro'yxatdan o'tish uchun /register komandasini bosing.", reply_markup=menu_buttons.as_markup(resize_keyboard=True))
+                
 
 # async def get_subjects():
 #     async with AsyncSession() as session:

@@ -1,5 +1,6 @@
 from aiogram.fsm.state import State, StatesGroup
 
 class TestCreation(StatesGroup):
-    subjectID = State()
-    waiting_for_num_of_tests = State()
+    waiting_for_subject = State()
+    waiting_for_answers = State()
+    waiting_for_verify = State()

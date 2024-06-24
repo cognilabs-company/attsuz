@@ -18,7 +18,7 @@ async def register_start(message: types.Message, state: FSMContext):
     if is_user_registered:
         await message.answer("🚫 Hurmatli foydalanuvchi, siz botda ro'yxatdan o'tgansiz. Yordam uchun /help komandasini bosing.", parse_mode="HTML")
     else:
-        await message.answer("Ism familiyangizni kiriting, masalan <b>Alijon Valiyev</b>:", parse_mode="HTML")
+        await message.answer("Ism familiyangizni kiriting, masalan <b>Alijon Valiyev</b>:", parse_mode="HTML", reply_markup=types.ReplyKeyboardRemove())
         await state.set_state(Registration.waiting_for_name)
 
 
@@ -86,7 +86,7 @@ async def register_school(message: types.Message, state: FSMContext):
     joined_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     
     # Save user to database
-    await requests.register_user(message=message, userID=userID, fullname=fullname, region=region, district=district, school=school, roleID=roleID, joined_at=joined_at)
+    await requests.register_user(message=message, userID=userID, fullname=fullname, region=region, district=district, school=school, role=roleID, joined_at=joined_at)
     await state.clear()
 
 
