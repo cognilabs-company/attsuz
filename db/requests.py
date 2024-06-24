@@ -6,7 +6,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.future import select
 
 from config import *
-from db.models import User, Subject, Test, Question, Participation, AsyncSession
+from db.models import User, Test, Question, Participation, AsyncSession
 
 
 # Functions
@@ -40,30 +40,30 @@ async def get_user_data(userID):
                 user_data.roleID) if user_data else None
 
 
-async def get_subjects():
-    async with AsyncSession() as session:
-        result = await session.execute(select(Subject))
-        subjects = result.scalars().all()
-        return subjects
+# async def get_subjects():
+#     async with AsyncSession() as session:
+#         result = await session.execute(select(Subject))
+#         subjects = result.scalars().all()
+#         return subjects
 
 
-async def get_subject_id(subject_name):
-    async with AsyncSession() as session:
-        result = await session.execute(select(Subject).where(Subject.name == subject_name))
-        subject_data = result.scalar_one_or_none()
-        return subject_data.subjectID if subject_data else None
+# async def get_subject_id(subject_name):
+#     async with AsyncSession() as session:
+#         result = await session.execute(select(Subject).where(Subject.name == subject_name))
+#         subject_data = result.scalar_one_or_none()
+#         return subject_data.subjectID if subject_data else None
 
 
 async def validate_teacher(userID):
     async with AsyncSession() as session:
         result = await session.get(User, userID)
-        return result.roleID == 1 if result else False
+        return result.role == 1 if result else False
 
 
-async def create_test_on_db(ownerID, subjectID, created_at):
+async def create_test_on_db(ownerID, subject, created_at):
     async with AsyncSession() as session:
         try:
-            new_test = Test(ownerID=ownerID, subjectID=subjectID, created_at=created_at)
+            new_test = Test(ownerID=ownerID, subject=subject, created_at=created_at)
             session.add(new_test)
             await session.commit()
             return new_test.testID
@@ -89,15 +89,15 @@ async def start_test(testID):
             return False
 
 
-async def check_if_other_test_is_ongoing(teacherID):
-    async with AsyncSession() as session:
-        try:
-            result = await session.execute(select(Test).where(Test.ownerID == teacherID, Test.is_ongoing == True))
-            ongoing_tests_by_this_user = result.scalars().first()
-            return ongoing_tests_by_this_user
-        except SQLAlchemyError as e:
-            print(f"Error in check_if_other_test_is_ongoing(): {e}")
-            return None
+# async def check_if_other_test_is_ongoing(teacherID):
+#     async with AsyncSession() as session:
+#         try:
+#             result = await session.execute(select(Test).where(Test.ownerID == teacherID, Test.is_ongoing == True))
+#             ongoing_tests_by_this_user = result.scalars().first()
+#             return ongoing_tests_by_this_user
+#         except SQLAlchemyError as e:
+#             print(f"Error in check_if_other_test_is_ongoing(): {e}")
+#             return None
 
 
 async def get_all_active_tests(teacherID):
@@ -112,7 +112,6 @@ async def get_all_active_tests(teacherID):
             return []
 
 
-# Merged function: get_all_ongoing_tests and check_if_other_test_is_ongoing
 async def get_all_ongoing_tests(teacherID):
     async with AsyncSession() as session:
         try:
@@ -179,7 +178,6 @@ async def create_questions(testID, answers):
             return False
 
 
-# STUDENT related tasks
 async def validate_test_request(testID):
     async with AsyncSession() as session:
         questions = await session.execute(select(Question).where(Question.testID == testID))
@@ -201,7 +199,7 @@ async def check_participation_status(userID, testID):
 async def save_participation(userID, testID, score, submitted_at):
     async with AsyncSession() as session:
         try:
-            new_participation = Participation(userID=userID, testID=testID, score=score, submittedAt=submitted_at)
+            new_participation = Participation(userID=userID, testID=testID, score=score, submitted_at=submitted_at)
             session.add(new_participation)
             await session.commit()
             return True

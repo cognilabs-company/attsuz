@@ -13,7 +13,7 @@ async def start(message: types.Message):
     await message.answer(f"""👋 Assalomu alaykum <b>{first_name}</b> botimizga xush kelibsiz.
 
 Yordam uchun: /help komandasini bosing.""", parse_mode="HTML", reply_markup=menu_buttons.as_markup(resize_keyboard=True))
-    
+
 
 @router.message(Command("help"))
 async def help_handler(message: types.Message):

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean, BigInteger, insert
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean, BigInteger, insert, Enum
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlalchemy.orm import declarative_base, relationship
 
@@ -13,10 +13,10 @@ Base = declarative_base()
 
 # Define models
 # Role class definition
-class Role(Base):
-    __tablename__ = "role"
-    id = Column(Integer, primary_key=True, nullable=False)
-    name = Column(String(20), nullable=False)
+# class Role(Base):
+#     __tablename__ = "role"
+#     id = Column(Integer, primary_key=True, nullable=False)
+#     name = Column(String(20), nullable=False)
 
 
 class User(Base):
@@ -26,36 +26,38 @@ class User(Base):
     region = Column(String(100))
     district = Column(String(100))
     school = Column(String(100))
-    roleID = Column(Integer, ForeignKey('role.id'))
-    role = relationship("Role")
+    # roleID = Column(Integer, ForeignKey('role.id'))
+    # role = relationship("Role")
+    role = Column(Integer)
     joined_at = Column(DateTime)
 
 
-class Subject(Base):
-    __tablename__ = 'subject'
-    subjectID = Column(Integer, primary_key=True)
-    name = Column(String(100))
+# class Subject(Base):
+#     __tablename__ = 'subject'
+#     subjectID = Column(Integer, primary_key=True)
+#     name = Column(String(100))
 
 
 class Test(Base):
     __tablename__ = 'test'
     testID = Column(Integer, primary_key=True)
     ownerID = Column(BigInteger, ForeignKey('user.id'))
-    subjectID = Column(Integer, ForeignKey('subject.subjectID'))
+    # subjectID = Column(Integer, ForeignKey('subject.subjectID'))
+    subject = Column(String(100))
     created_at = Column(DateTime)
     started_at = Column(DateTime, nullable=True)
     ended_at = Column(DateTime, nullable=True)
     is_ongoing = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
     owner = relationship("User")
-    subject = relationship("Subject")
+    # subject = relationship("Subject")
 
 
 class Question(Base):
     __tablename__ = 'question'
     questionID = Column(Integer, primary_key=True)
     testID = Column(Integer, ForeignKey('test.testID'))
-    answer = Column(String(100))
+    answer = Column(Enum("A", "B", "C", "D", "E"))
     created_at = Column(DateTime)
     test = relationship("Test")
 
@@ -66,7 +68,7 @@ class Participation(Base):
     userID = Column(BigInteger, ForeignKey('user.id'))
     testID = Column(Integer, ForeignKey('test.testID'))
     score = Column(Integer)
-    submittedAt = Column(DateTime)
+    submitted_at = Column(DateTime)
     user = relationship("User")
     test = relationship("Test")
 
@@ -75,16 +77,3 @@ class Participation(Base):
 async def init_models():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-        # stmt1 = insert(Role).values(name="O'qituvchi")
-        # stmt2 = insert(Role).values(name="O'quvchi")
-        # await conn.execute(stmt1)
-        # await conn.commit()
-        # await conn.execute(stmt2)
-        # await conn.commit()
-
-
-# # State Management
-# class TeacherState(StatesGroup):
-#     subject = State()
-#     num_questions = State()
-#     question_creation = State()
