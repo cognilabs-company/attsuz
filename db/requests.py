@@ -23,7 +23,7 @@ async def register_user(message: Message, userID, fullname, region, district, sc
             await message.answer("✅ Siz muvaffaqiyatli ro'yxatdan o'tdingiz!")
         except SQLAlchemyError as err:
             await session.rollback()
-            print("Error registering user:", err)
+            bot.send_message(LOGS_CHANNEL, f"Error registering user: {err}")
             await message.answer("❌ Ro'yxatdan o'tish amalga oshmadi. Yana urinib ko'ring, balki qaysidir ma'lumot noto'g'ri kiritilgan bo'lishi mumkin.")
 
 
@@ -42,7 +42,7 @@ async def user_is_registered(userID):
                 print("Foydalanuvchi bazada mavjud emas.")
         except SQLAlchemyError as err:
             await session.rollback()
-            print("user_is_registered() da muammo:", err)
+            bot.send_message(LOGS_CHANNEL, f"Error in checking user is registered: {err}")
             return None
 
 
@@ -67,7 +67,7 @@ async def get_user_data(message: Message, userID):
 
 async def get_teacher_name(testID):
     async with AsyncSession() as session:
-        # try:
+        try:
             user = await session.execute(
                 select(Test.ownerID).where(Test.testID == testID)
             )
@@ -77,35 +77,25 @@ async def get_teacher_name(testID):
             )
             teacher_name = teacher.scalars().first()
             return teacher_name
-        # except SQLAlchemyError as e:
-        #     await session.rollback()
-        #     print("Get_teacher_name() error:", e)
-        #     return None
-    
-
-# async def get_subjects():
-#     async with AsyncSession() as session:
-#         result = await session.execute(select(Subject))
-#         subjects = result.scalars().all()
-#         return subjects
-
-
-# async def get_subject_id(subject_name):
-#     async with AsyncSession() as session:
-#         result = await session.execute(select(Subject).where(Subject.name == subject_name))
-#         subject_data = result.scalar_one_or_none()
-#         return subject_data.subjectID if subject_data else None
+        except SQLAlchemyError as e:
+            await session.rollback()
+            bot.send_message(LOGS_CHANNEL, f"Error in getting teacher name: {e}")
+            return None
 
 
 async def validate_teacher(userID):
     async with AsyncSession() as session:
         async with session.begin():
-            role = await session.execute(
-                select(User.role).where(User.id == userID)
-            )
-            role_result = role.scalars().first()
-            print("Role: ", role_result)
-            return role_result
+            try:
+                role = await session.execute(
+                    select(User.role).where(User.id == userID)
+                )
+                role_result = role.scalars().first()
+                print("Role: ", role_result)
+                return role_result
+            except SQLAlchemyError as e:
+                await session.rollback()
+                bot.send_message(LOGS_CHANNEL, f"Error validating teacher: {e}")
 
 
 async def create_test_on_db(ownerID: int, subject: str, created_at: str, answers: str):
@@ -117,7 +107,7 @@ async def create_test_on_db(ownerID: int, subject: str, created_at: str, answers
             return new_test.testID
         except SQLAlchemyError as err:
             await session.rollback()
-            print("Test yaratish jarayonida muammo yuzaga keldi:", err)
+            bot.send_message(LOGS_CHANNEL, f"Error in creating test on db: {err}")
             return None
 
 
@@ -133,19 +123,9 @@ async def start_test(testID):
             print(f"Test-{testID} boshlandi!")
             return True
         except SQLAlchemyError as e:
-            print(f"Error in start_test(): {e}")
+            await session.rollback()
+            bot.send_message(LOGS_CHANNEL, f"Error in start_test(): {e}")
             return False
-
-
-# async def check_if_other_test_is_ongoing(teacherID):
-#     async with AsyncSession() as session:
-#         try:
-#             result = await session.execute(select(Test).where(Test.ownerID == teacherID, Test.is_ongoing == True))
-#             ongoing_tests_by_this_user = result.scalars().first()
-#             return ongoing_tests_by_this_user
-#         except SQLAlchemyError as e:
-#             print(f"Error in check_if_other_test_is_ongoing(): {e}")
-#             return None
 
 
 async def get_all_active_tests(teacherID):
@@ -156,7 +136,8 @@ async def get_all_active_tests(teacherID):
             active_tests_by_this_user = result.scalars().all()
             return list(active_tests_by_this_user)
         except SQLAlchemyError as e:
-            print(f"Error in get_all_active_tests(): {e}")
+            await session.rollback()
+            bot.send_message(LOGS_CHANNEL, f"Error in get_all_active_tests(): {e}")
             return []
 
 
@@ -167,7 +148,8 @@ async def get_all_ongoing_tests(teacherID):
             ongoing_tests_by_this_user = result.scalars().all()
             return ongoing_tests_by_this_user
         except SQLAlchemyError as e:
-            print(f"Error in get_all_ongoing_tests(): {e}")
+            await session.rollback()
+            bot.send_message(LOGS_CHANNEL, f"Error in get_all_ongoing_tests(): {e}")
             return []
 
 
@@ -178,7 +160,8 @@ async def is_test_started(testID):
             started_test = result.scalar_one_or_none()
             return started_test
         except SQLAlchemyError as e:
-            print(f"Error in is_test_started(): {e}")
+            await session.rollback()
+            bot.send_message(LOGS_CHANNEL, f"Error in is_test_started(): {e}")
             return None
 
 
@@ -190,7 +173,8 @@ async def is_test_ended(testID):
             ended_test = result.scalar_one_or_none()
             return ended_test
         except SQLAlchemyError as e:
-            print(f"Error in is_test_ended(): {e}")
+            await session.rollback()
+            bot.send_message(LOGS_CHANNEL, f"Error in is_test_ended(): {e}")
             return None
 
 
@@ -207,7 +191,8 @@ async def finish_test(testID):
             print(f"Test-{testID} yakunlandi!")
             return True
         except SQLAlchemyError as e:
-            print(f"Error in finish_test(): {e}")
+            await session.rollback()
+            bot.send_message(LOGS_CHANNEL, f"Error in finish_test(): {e}")
             return False
 
 
@@ -220,23 +205,9 @@ async def get_all_correct_answers(testID):
 
             return correct_answers[0]
         except SQLAlchemyError as e:
-            print(f"Error in finish_test(): {e}")
+            await session.rollback()
+            bot.send_message(LOGS_CHANNEL, f"Error in finish_test(): {e}")
             return False
-
-
-# async def create_questions(testID, answers):
-#     async with AsyncSession() as session:
-#         try:
-#             for answer in answers:
-#                 created_at = datetime.now()
-#                 new_question = Question(testID=testID, answer=answer, created_at=created_at)
-#                 session.add(new_question)
-#             await session.commit()
-#             return True
-#         except SQLAlchemyError as err:
-#             await session.rollback()
-#             print("Savol yaratish jarayonida muammo yuzaga keldi:", err)
-#             return False
 
 
 async def validate_test_request(testID):
@@ -246,16 +217,9 @@ async def validate_test_request(testID):
             is_test_exists = result.scalars().first()
             return is_test_exists
         except SQLAlchemyError as e:
-            print(f"Error in get_all_ongoing_tests(): {e}")
+            await session.rollback()
+            bot.send_message(LOGS_CHANNEL, f"Error in validate_test_request(): {e}")
             return []
-
-        # questions = await session.execute(select(Question).where(Question.testID == testID))
-        # questions = questions.scalars().all()
-        # if not questions:
-        #     return False
-        # else:
-        #     num_questions = len(questions)
-        #     return questions, num_questions
 
 
 async def check_participation_status(userID, testID):
@@ -265,7 +229,8 @@ async def check_participation_status(userID, testID):
                 select(Participation).where(Participation.userID == userID, Participation.testID == testID))
             return result.scalar_one_or_none() is not None
         except SQLAlchemyError as e:
-            print(f"Error in get_all_ongoing_tests(): {e}")
+            session.rollback()
+            bot.send_message(LOGS_CHANNEL, f"Error in check_participation_status(): {e}")
             return []
 
 async def save_participation(userID, testID, score, submitted_at):
@@ -277,40 +242,9 @@ async def save_participation(userID, testID, score, submitted_at):
             return True
         except SQLAlchemyError as err:
             await session.rollback()
-            print("Qatnashuvni ro'yxatga olishda muammo yuzaga keldi:", err)
+            bot.send_message(LOGS_CHANNEL, f"Error in save_participation(): {err}")
             return False
-
-        # Initialize bot
-
-
-# API_TOKEN = 'YOUR_BOT_API_TOKEN'
-# bot = Bot(token=API_TOKEN)
-# dp = Dispatcher(bot)
-
-
-# Example handler
-# @dp.message_handler(commands='start', state='*')
-# async def start_handler(message: types.Message, state: FSMContext):
-#     await TeacherState.subject.set()
-#     await message.reply("Please enter the subject:")
-
-
-# @dp.message_handler(state=TeacherState.subject)
-# async def process_subject(message: types.Message, state: FSMContext):
-#     async with state.proxy() as data:
-#         data['subject'] = message.text
-#     await message.reply(f"Subject set to: {message.text}")
-    # Transition to the next state if needed
-    # await TeacherState.next()
-
-# # Initialize database
-# import asyncio
-# asyncio.run(init_models())
-#
-# if __name__ == '__main__':
-#     from aiogram.utils import executor
-#     executor.start_polling(dp, skip_updates=True)
-
+        
 
 async def generate_test_report(message: types.Message, testID: int):
     async with AsyncSession() as session:

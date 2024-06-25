@@ -1,5 +1,6 @@
 from aiogram.filters import Command, CommandStart
 from aiogram import Router, types, F
+from aiogram.types import FSInputFile
 
 from db import requests, messages
 from config import *
@@ -10,7 +11,12 @@ router = Router()
 @router.message(CommandStart())
 async def start(message: types.Message):
     first_name = message.from_user.first_name
-    await message.answer(f"""👋 Assalomu alaykum <b>{first_name}</b> botimizga xush kelibsiz.
+#     await message.answer(f"""👋 Assalomu alaykum <b>{first_name}</b> botimizga xush kelibsiz.
+
+# Yordam uchun: /help komandasini bosing.""", parse_mode="HTML", reply_markup=menu_buttons.as_markup(resize_keyboard=True))
+    intro_photo_path = "assets/images/start_bot.jpg"
+    intro_file = FSInputFile(intro_photo_path)
+    await bot.send_photo(message.chat.id, intro_file, caption=f"""👋 Assalomu alaykum <b>{first_name}</b> botimizga xush kelibsiz.
 
 Yordam uchun: /help komandasini bosing.""", parse_mode="HTML", reply_markup=menu_buttons.as_markup(resize_keyboard=True))
 

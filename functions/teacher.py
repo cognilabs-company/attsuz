@@ -127,5 +127,6 @@ async def get_finish_test(call: types.CallbackQuery, state: FSMContext):
         await call.message.edit_text(f"{test_repr}-test yakunlandi.")
 
         await requests.generate_test_report(call.message, test)
+        await state.clear()
     else:
         await call.message.edit_text("Testni tugatishda muammo yuzaga keldi.")

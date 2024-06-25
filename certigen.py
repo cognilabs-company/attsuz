@@ -2,6 +2,7 @@ from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
 from config import *
 from db import requests
+import os
 
 from aiogram.types import FSInputFile
 
@@ -64,6 +65,7 @@ async def generate_certificate(studentID, testID):
 
         
         await bot.send_document(studentID, inputfile_img, caption="🎉 Sertifikatni yuklab oling.")
+        os.remove(new_image_path)
     except Exception as e:
             print(f"Error in Generating Certificate: {e}")
             return None
