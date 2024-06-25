@@ -3,6 +3,8 @@ from datetime import datetime
 from config import *
 from db import requests
 
+from aiogram.types import FSInputFile
+
 async def generate_certificate(studentID, testID):
     try:
         template_path = "assets/images/certificate.png"
@@ -49,7 +51,7 @@ async def generate_certificate(studentID, testID):
 
 
         # Draw text on the image
-        draw.text((student_name_x, student_name_y), student_name, fill=font_color, font=font_name)
+        draw.text((student_name_x, student_name_y), st_name, fill=font_color, font=font_name)
         draw.text((teacher_name_x, teacher_name_y), teacher_name, fill=font_color, font=font_teacher_name)
         draw.text((time_x, time_y), f"{current_time}", fill=font_color, font=font_date)
 
@@ -58,9 +60,10 @@ async def generate_certificate(studentID, testID):
         new_image_path = f"assets/images/certificate-{current_datetime}.png"
         img.save(new_image_path)
         print(f"Certificate saved as: {new_image_path}")
+        inputfile_img = FSInputFile(new_image_path)
 
-        with open(new_image_path, "rb") as photo:
-             bot.send_document(studentID, photo, caption="Sertifikatni yuklab oling.")
+        
+        await bot.send_document(studentID, inputfile_img, caption="🎉 Sertifikatni yuklab oling.")
     except Exception as e:
             print(f"Error in Generating Certificate: {e}")
             return None

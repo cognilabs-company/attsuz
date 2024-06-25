@@ -69,26 +69,28 @@ async def verify_solution(call: types.CallbackQuery, state: FSMContext):
         for i in range(0, len(correct_answers)):
             if correct_answers[i] == student_answers[i]:
                 score+=1
-    
-    if is_verified:
-        if correct_answers:
+    else:
+        await call.message.answer("Kiritilgan javoblar soni savollar soniga to'g'ri kelmadi. Iltimos /solve komandasi orqali boshidan testni yeching.")
+        await state.clear()
+        return
+
+    if is_verified and correct_answers:
+        are_solutions_submitted = await requests.save_participation(call.message.chat.id, data['testID'], score, submitted_at)
+        if are_solutions_submitted:
+            await call.message.answer("Javoblaringiz qabul qilindi!")
+            await state.clear()
+
+            user_data = await requests.user_is_registered(call.message.chat.id)
+            fullname = user_data[0]
+            school = user_data[3]
+        
+            score_p = str((score / len(student_answers)) * 100)[:5]
+            print(user_data)
+            await call.message.answer(messages.student_report(fullname, school, data['testID'], student_answers, score, score_p, submitted_at), parse_mode="HTML")
             await generate_certificate(call.message.chat.id, data['testID'])
-            are_solutions_submitted = await requests.save_participation(call.message.chat.id, data['testID'], score, submitted_at)
-            if are_solutions_submitted:
-                await call.message.answer("Javoblaringiz qabul qilindi!")
-                await state.clear()
-
-                user_data = await requests.user_is_registered(call.message.chat.id)
-                fullname = user_data[0]
-                school = user_data[3]
-                score_p = str((score / len(student_answers)) * 100)[:5]
-
-                print(user_data)
-                await call.message.answer(messages.student_report(fullname, school, data['testID'], student_answers, score, score_p, submitted_at), parse_mode="HTML")
-                # await generate_certificate(call.message.chat.id, data['testID'])
-            else:
-                call.message.answer("Javoblarni tekshirishda muammo yuzaga keldi.")
-                await state.clear()
+        else:
+            call.message.answer("Javoblarni tekshirishda muammo yuzaga keldi.")
+            await state.clear()
     else:
         await call.message.answer("Yangi test yaratish uchun /create komandasini bosing.")
         await state.clear()
