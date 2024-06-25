@@ -1,6 +1,7 @@
 from datetime import datetime
+import pandas as pd
 
-from aiogram.types import Message
+from aiogram.types import Message, FSInputFile
 from sqlalchemy import update
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.future import select
@@ -309,3 +310,47 @@ async def save_participation(userID, testID, score, submitted_at):
 # if __name__ == '__main__':
 #     from aiogram.utils import executor
 #     executor.start_polling(dp, skip_updates=True)
+
+
+async def generate_test_report(message: types.Message, testID: int):
+    async with AsyncSession() as session:
+        stmt = select(
+        Participation.userID, User.fullname, User.region, User.district, User.school, Test.subject, 
+        Test.testID, Participation.submitted_at, Participation.score
+        ).join(
+            User, Participation.userID == User.id
+        ).join(
+            Test, Participation.testID == Test.testID
+        ).where(Test.testID == testID)
+        try:
+            result = await session.execute(stmt)
+            results = result.fetchall()
+
+            data = [{
+                'userID': row.userID,
+                'fullname': row.fullname,
+                'region': row.region,
+                'district': row.district,
+                'school': row.school,
+                'subject': row.subject,
+                'testID': row.testID,
+                'submitted_at': row.submitted_at,
+                'score': row.score
+            } for row in results]
+
+            df = pd.DataFrame(data)
+            csv_path = f"assets/excel/test{test_id_repr(testID)}.csv"
+
+            if not df.empty:
+                df.to_csv(csv_path, index=False)
+                print(f"Data exported to 'data.csv' successfully!")
+                csv_inputfile = FSInputFile(csv_path)
+                await bot.send_document(message.chat.id, csv_inputfile, caption="📊 Natijalarni yuklab oling.")
+            else:
+                await bot.send_message(message.chat.id, text="Kechirasiz, bu testga hech kim qatnashmagani sabab natijalar mavjud emas.")
+            
+            return True
+
+        except Exception as e:
+            await bot.send_message(LOGS_CHANNEL, f"Error in generate_test_report(): {e}")
+            return False

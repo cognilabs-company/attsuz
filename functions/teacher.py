@@ -126,7 +126,6 @@ async def get_finish_test(call: types.CallbackQuery, state: FSMContext):
     if is_finished:
         await call.message.edit_text(f"{test_repr}-test yakunlandi.")
 
-        # Excel generated
-    
+        await requests.generate_test_report(call.message, test)
     else:
         await call.message.edit_text("Testni tugatishda muammo yuzaga keldi.")
