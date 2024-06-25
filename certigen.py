@@ -8,8 +8,8 @@ from aiogram.types import FSInputFile
 
 async def generate_certificate(studentID, testID):
     try:
-        template_path = "assets/images/certificate.png"
-        font_path = "assets/fonts/OpenSans-Regular.ttf"
+        template_path = f"{prod_dir}assets/images/certificate.png"
+        font_path = f"{prod_dir}assets/fonts/OpenSans-Regular.ttf"
 
         # Open the certificate template
         img = Image.open(template_path)
@@ -58,7 +58,7 @@ async def generate_certificate(studentID, testID):
 
         # Option 1: Save the modified image (user downloads manually)
         current_datetime = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-        new_image_path = f"assets/images/certificate-{current_datetime}.png"
+        new_image_path = f"{prod_dir}assets/images/certificate-{current_datetime}.png"
         img.save(new_image_path)
         print(f"Certificate saved as: {new_image_path}")
         inputfile_img = FSInputFile(new_image_path)

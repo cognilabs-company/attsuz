@@ -273,7 +273,7 @@ async def generate_test_report(message: types.Message, testID: int):
             } for row in results]
 
             df = pd.DataFrame(data)
-            csv_path = f"assets/excel/test{test_id_repr(testID)}.csv"
+            csv_path = f"{prod_dir}assets/excel/test{test_id_repr(testID)}.csv"
 
             if not df.empty:
                 df.to_csv(csv_path, index=False)
