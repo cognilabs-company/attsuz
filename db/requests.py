@@ -23,7 +23,7 @@ async def register_user(message: Message, userID, fullname, region, district, sc
             await message.answer("✅ Siz muvaffaqiyatli ro'yxatdan o'tdingiz!")
         except SQLAlchemyError as err:
             await session.rollback()
-            bot.send_message(LOGS_CHANNEL, f"Error registering user: {err}")
+            await bot.send_message(LOGS_CHANNEL, f"Error registering user: {err}")
             await message.answer("❌ Ro'yxatdan o'tish amalga oshmadi. Yana urinib ko'ring, balki qaysidir ma'lumot noto'g'ri kiritilgan bo'lishi mumkin.")
 
 
@@ -42,7 +42,7 @@ async def user_is_registered(userID):
                 print("Foydalanuvchi bazada mavjud emas.")
         except SQLAlchemyError as err:
             await session.rollback()
-            bot.send_message(LOGS_CHANNEL, f"Error in checking user is registered: {err}")
+            await bot.send_message(LOGS_CHANNEL, f"Error in checking user is registered: {err}")
             return None
 
 
@@ -79,7 +79,7 @@ async def get_teacher_name(testID):
             return teacher_name
         except SQLAlchemyError as e:
             await session.rollback()
-            bot.send_message(LOGS_CHANNEL, f"Error in getting teacher name: {e}")
+            await bot.send_message(LOGS_CHANNEL, f"Error in getting teacher name: {e}")
             return None
 
 
@@ -95,7 +95,7 @@ async def validate_teacher(userID):
                 return role_result
             except SQLAlchemyError as e:
                 await session.rollback()
-                bot.send_message(LOGS_CHANNEL, f"Error validating teacher: {e}")
+                await bot.send_message(LOGS_CHANNEL, f"Error validating teacher: {e}")
 
 
 async def create_test_on_db(ownerID: int, subject: str, created_at: str, answers: str):
@@ -107,7 +107,7 @@ async def create_test_on_db(ownerID: int, subject: str, created_at: str, answers
             return new_test.testID
         except SQLAlchemyError as err:
             await session.rollback()
-            bot.send_message(LOGS_CHANNEL, f"Error in creating test on db: {err}")
+            await bot.send_message(LOGS_CHANNEL, f"Error in creating test on db: {err}")
             return None
 
 
@@ -124,7 +124,7 @@ async def start_test(testID):
             return True
         except SQLAlchemyError as e:
             await session.rollback()
-            bot.send_message(LOGS_CHANNEL, f"Error in start_test(): {e}")
+            await bot.send_message(LOGS_CHANNEL, f"Error in start_test(): {e}")
             return False
 
 
@@ -137,7 +137,7 @@ async def get_all_active_tests(teacherID):
             return list(active_tests_by_this_user)
         except SQLAlchemyError as e:
             await session.rollback()
-            bot.send_message(LOGS_CHANNEL, f"Error in get_all_active_tests(): {e}")
+            await bot.send_message(LOGS_CHANNEL, f"Error in get_all_active_tests(): {e}")
             return []
 
 
@@ -149,7 +149,7 @@ async def get_all_ongoing_tests(teacherID):
             return ongoing_tests_by_this_user
         except SQLAlchemyError as e:
             await session.rollback()
-            bot.send_message(LOGS_CHANNEL, f"Error in get_all_ongoing_tests(): {e}")
+            await bot.send_message(LOGS_CHANNEL, f"Error in get_all_ongoing_tests(): {e}")
             return []
 
 
@@ -161,7 +161,7 @@ async def is_test_started(testID):
             return started_test
         except SQLAlchemyError as e:
             await session.rollback()
-            bot.send_message(LOGS_CHANNEL, f"Error in is_test_started(): {e}")
+            await bot.send_message(LOGS_CHANNEL, f"Error in is_test_started(): {e}")
             return None
 
 
@@ -174,7 +174,7 @@ async def is_test_ended(testID):
             return ended_test
         except SQLAlchemyError as e:
             await session.rollback()
-            bot.send_message(LOGS_CHANNEL, f"Error in is_test_ended(): {e}")
+            await bot.send_message(LOGS_CHANNEL, f"Error in is_test_ended(): {e}")
             return None
 
 
@@ -192,7 +192,7 @@ async def finish_test(testID):
             return True
         except SQLAlchemyError as e:
             await session.rollback()
-            bot.send_message(LOGS_CHANNEL, f"Error in finish_test(): {e}")
+            await bot.send_message(LOGS_CHANNEL, f"Error in finish_test(): {e}")
             return False
 
 
@@ -206,7 +206,7 @@ async def get_all_correct_answers(testID):
             return correct_answers[0]
         except SQLAlchemyError as e:
             await session.rollback()
-            bot.send_message(LOGS_CHANNEL, f"Error in finish_test(): {e}")
+            await bot.send_message(LOGS_CHANNEL, f"Error in finish_test(): {e}")
             return False
 
 
@@ -218,7 +218,7 @@ async def validate_test_request(testID):
             return is_test_exists
         except SQLAlchemyError as e:
             await session.rollback()
-            bot.send_message(LOGS_CHANNEL, f"Error in validate_test_request(): {e}")
+            await bot.send_message(LOGS_CHANNEL, f"Error in validate_test_request(): {e}")
             return []
 
 
@@ -230,7 +230,7 @@ async def check_participation_status(userID, testID):
             return result.scalar_one_or_none() is not None
         except SQLAlchemyError as e:
             session.rollback()
-            bot.send_message(LOGS_CHANNEL, f"Error in check_participation_status(): {e}")
+            await bot.send_message(LOGS_CHANNEL, f"Error in check_participation_status(): {e}")
             return []
 
 async def save_participation(userID, testID, score, submitted_at):
@@ -242,7 +242,7 @@ async def save_participation(userID, testID, score, submitted_at):
             return True
         except SQLAlchemyError as err:
             await session.rollback()
-            bot.send_message(LOGS_CHANNEL, f"Error in save_participation(): {err}")
+            await bot.send_message(LOGS_CHANNEL, f"Error in save_participation(): {err}")
             return False
         
 
