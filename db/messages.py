@@ -3,22 +3,31 @@ import pytz
 from config import *
 
 
+test_create_on_start = """1️⃣ Test yaratish uchun
+
++test*Fan nomi*to'g'ri javoblar
+
+ko`rinishida yuboring.
+
+Misol: 
++test*Informatika*abbccdd..."""
+
+
 help_msg = """☝️ Mazkur bot testlar yechish maqsadida foydalaniladi. O'qituvchi test yaratadi, o'quvchi esa uni yechadi va natijasini bilib oladi. Quyida botda mavjud komandalar bilan tanishasiz:
 
 <b>Umumiy</b>:
 /start - Botni ishga tushirish
-/register - Ro'yxatdan o'tish
 /myinfo - Shaxsiy ma'lumotlar
 /help - Yordam
 
 
 <b>O'qituvchi</b>:
-/create - Test yaratish
+/start - Test yaratish uchun umumiy shablon
 /starttest - Yaratilgan testni boshlash
 /finishtest - Testni tugatish
 
 <b>O'quvchi</b>:
-/solve - Test ishlash
+/start - test yechish uchun umumiy shablon
 """
 
 def myinfo_msg(fullname, region, district, school, role):
@@ -39,6 +48,20 @@ def myinfo_msg(fullname, region, district, school, role):
 Joriy vaqt: {curr_time}
     """
 
+
+    return msg
+
+
+def test_success_msg(testID: int, num_of_answers: int):
+    msg = f"""✅ Testingiz muvaffaqiyatli yaratildi!
+
+Test kodi: <b>{testID}</b>
+Savollar soni: <b>{num_of_answers}</b>
+
+Testda qatnashuvchilar quyidagi ko`rinishda javob yuborishlari mumkin:
+{testID}*abcdea...
+
+"""
 
     return msg
 

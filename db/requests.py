@@ -101,7 +101,7 @@ async def validate_teacher(userID):
 async def create_test_on_db(ownerID: int, subject: str, created_at: str, answers: str):
     async with AsyncSession() as session:
         try:
-            new_test = Test(ownerID=ownerID, subject=subject, created_at=created_at, answers=answers)
+            new_test = Test(ownerID=ownerID, subject=subject, created_at=created_at, answers=answers, is_ongoing=True)
             session.add(new_test)
             await session.commit()
             return new_test.testID
@@ -112,57 +112,57 @@ async def create_test_on_db(ownerID: int, subject: str, created_at: str, answers
 
 
 # start test function
-async def start_test(testID):
-    started_at = datetime.now()
-    async with AsyncSession() as session:
-        try:
-            stmt = update(Test).where(Test.testID == testID, Test.ended_at.is_(None)).values(is_ongoing=True,
-                                                                                             started_at=started_at)
-            await session.execute(stmt)
-            await session.commit()
-            print(f"Test-{testID} boshlandi!")
-            return True
-        except SQLAlchemyError as e:
-            await session.rollback()
-            await bot.send_message(LOGS_CHANNEL, f"Error in start_test(): {e}")
-            return False
+# async def start_test(testID):
+#     started_at = datetime.now()
+#     async with AsyncSession() as session:
+#         try:
+#             stmt = update(Test).where(Test.testID == testID, Test.ended_at.is_(None)).values(is_ongoing=True,
+#                                                                                              started_at=started_at)
+#             await session.execute(stmt)
+#             await session.commit()
+#             print(f"Test-{testID} boshlandi!")
+#             return True
+#         except SQLAlchemyError as e:
+#             await session.rollback()
+#             await bot.send_message(LOGS_CHANNEL, f"Error in start_test(): {e}")
+#             return False
 
 
-async def get_all_active_tests(teacherID):
-    async with AsyncSession() as session:
-        try:
-            result = await session.execute(
-                select(Test.testID).where(Test.ownerID == teacherID, Test.is_active == True, Test.is_ongoing == False))
-            active_tests_by_this_user = result.scalars().all()
-            return list(active_tests_by_this_user)
-        except SQLAlchemyError as e:
-            await session.rollback()
-            await bot.send_message(LOGS_CHANNEL, f"Error in get_all_active_tests(): {e}")
-            return []
+# async def get_all_active_tests(teacherID):
+#     async with AsyncSession() as session:
+#         try:
+#             result = await session.execute(
+#                 select(Test.testID).where(Test.ownerID == teacherID, Test.is_active == True, Test.is_ongoing == False))
+#             active_tests_by_this_user = result.scalars().all()
+#             return list(active_tests_by_this_user)
+#         except SQLAlchemyError as e:
+#             await session.rollback()
+#             await bot.send_message(LOGS_CHANNEL, f"Error in get_all_active_tests(): {e}")
+#             return []
 
 
-async def get_all_ongoing_tests(teacherID):
-    async with AsyncSession() as session:
-        try:
-            result = await session.execute(select(Test.testID).where(Test.ownerID == teacherID, Test.is_ongoing == True))
-            ongoing_tests_by_this_user = result.scalars().all()
-            return ongoing_tests_by_this_user
-        except SQLAlchemyError as e:
-            await session.rollback()
-            await bot.send_message(LOGS_CHANNEL, f"Error in get_all_ongoing_tests(): {e}")
-            return []
+# async def get_all_ongoing_tests(teacherID):
+#     async with AsyncSession() as session:
+#         try:
+#             result = await session.execute(select(Test.testID).where(Test.ownerID == teacherID, Test.is_ongoing == True))
+#             ongoing_tests_by_this_user = result.scalars().all()
+#             return ongoing_tests_by_this_user
+#         except SQLAlchemyError as e:
+#             await session.rollback()
+#             await bot.send_message(LOGS_CHANNEL, f"Error in get_all_ongoing_tests(): {e}")
+#             return []
 
 
-async def is_test_started(testID):
-    async with AsyncSession() as session:
-        try:
-            result = await session.execute(select(Test.started_at).where(Test.testID == testID))
-            started_test = result.scalar_one_or_none()
-            return started_test
-        except SQLAlchemyError as e:
-            await session.rollback()
-            await bot.send_message(LOGS_CHANNEL, f"Error in is_test_started(): {e}")
-            return None
+# async def is_test_started(testID):
+#     async with AsyncSession() as session:
+#         try:
+#             result = await session.execute(select(Test.started_at).where(Test.testID == testID))
+#             started_test = result.scalar_one_or_none()
+#             return started_test
+#         except SQLAlchemyError as e:
+#             await session.rollback()
+#             await bot.send_message(LOGS_CHANNEL, f"Error in is_test_started(): {e}")
+#             return None
 
 
 async def is_test_ended(testID):
