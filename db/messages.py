@@ -7,10 +7,19 @@ test_create_on_start = """1️⃣ Test yaratish uchun
 
 +test*Fan nomi*to'g'ri javoblar
 
-ko`rinishida yuboring.
+ko'rinishida yuboring.
 
 Misol: 
 +test*Informatika*abbccdd..."""
+
+test_solve_on_start = """1️⃣ Testga yechim yuborish uchun
+
+testID*to'g'ri javoblar
+
+ko'rinishida yuboring. Masalan:
+
+000123*abcdea...
+"""
 
 
 help_msg = """☝️ Mazkur bot testlar yechish maqsadida foydalaniladi. O'qituvchi test yaratadi, o'quvchi esa uni yechadi va natijasini bilib oladi. Quyida botda mavjud komandalar bilan tanishasiz:

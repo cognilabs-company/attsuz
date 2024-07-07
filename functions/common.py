@@ -6,7 +6,7 @@ from aiogram.fsm.context import FSMContext
 from db import requests, messages
 from config import *
 from states.registration import Registration
-from states.test import TestCreation
+from states.test import TestManage
 
 router = Router()
 
@@ -18,10 +18,14 @@ async def start(message: types.Message, state: FSMContext):
     intro_file = FSInputFile(intro_photo_path)
     
     is_user_registered = await requests.user_is_registered(message.chat.id)
-    if is_user_registered:
+    if is_user_registered[4] == 1:
         msg = messages.test_create_on_start
         await message.answer(msg)
-        state.set_state(TestCreation.waiting_for_test)
+        await state.set_state(TestManage.teacher_state)
+    elif is_user_registered[4] == 2:
+        msg = messages.test_solve_on_start
+        await message.answer(msg)
+        await state.set_state(TestManage.student_state)
     else:
         await bot.send_photo(message.chat.id, intro_file, caption=f"""👋 Assalomu alaykum <b>{first_name}</b> botimizga xush kelibsiz.
 

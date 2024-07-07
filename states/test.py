@@ -8,8 +8,8 @@ class TestCreation(StatesGroup):
 
 
 class TestManage(StatesGroup):
-    waiting_for_test_id_to_start = State()
-    waiting_for_test_id_to_finish = State()
+    teacher_state = State()
+    student_state = State()
 
 
 class TestSolve(StatesGroup):
