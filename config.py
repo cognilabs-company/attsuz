@@ -1,7 +1,7 @@
 import os
 
 from aiogram import types
-from aiogram.utils.keyboard import ReplyKeyboardBuilder,InlineKeyboardBuilder
+from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from dotenv import load_dotenv
 from aiogram import Bot
 
@@ -36,11 +36,8 @@ regions = {
 
 
 button_names = {
-    "register": "✏️ Ro'yxatdan o'tish",
     "myinfo": "👤 Mening ma'lumotlarim",
     "help": "🆘 Yordam",
-    "create": "📝 Test yaratish",
-    "solve": "📝 Test yechish"
 }
 
 
@@ -52,20 +49,8 @@ intro_buttons.adjust(2)
 
 """Main Menu buttons for registered teachers"""
 menu_buttons = ReplyKeyboardBuilder()
-menu_buttons.add(*[types.KeyboardButton(text=txt) for txt in list(button_names.values())[1:3]])
+menu_buttons.add(*[types.KeyboardButton(text=txt) for txt in list(button_names.values())])
 menu_buttons.adjust(3)
-
-
-"""Main Menu buttons for registered students"""
-student_buttons = ReplyKeyboardBuilder()
-student_buttons.add(types.KeyboardButton(text=button_names["myinfo"]), types.KeyboardButton(text=button_names['help']), types.KeyboardButton(text=button_names['solve']))
-student_buttons.adjust(3)
-
-
-"""Validation"""
-verify_buttons = InlineKeyboardBuilder()
-verify_buttons.add(types.InlineKeyboardButton(text="✅ Tasdiqlayman", callback_data="verify"), types.InlineKeyboardButton(text="❌ Bekor qilaman", callback_data="cancel"))
-verify_buttons.adjust(2)
 
 
 bot = Bot(token=BOT_TOKEN)

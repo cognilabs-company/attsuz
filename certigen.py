@@ -20,7 +20,8 @@ async def generate_certificate(studentID, testID):
         student_name = await requests.user_is_registered(studentID)
         print(student_name)
         st_name = student_name[0]
-        teacher_name = await requests.get_teacher_name(testID)
+        teacher_data = await requests.get_teacher_data(testID)
+        teacher_name = teacher_data[0]
         current_time = datetime.now().strftime('%Y-%m-%d')
 
         # Define text positions (adjust as needed)

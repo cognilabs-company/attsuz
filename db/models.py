@@ -11,14 +11,6 @@ AsyncSession = async_sessionmaker(engine, expire_on_commit=False)
 Base = declarative_base()
 
 
-# Define models
-# Role class definition
-# class Role(Base):
-#     __tablename__ = "role"
-#     id = Column(Integer, primary_key=True, nullable=False)
-#     name = Column(String(20), nullable=False)
-
-
 class User(Base):
     __tablename__ = 'user'
     id = Column(BigInteger, primary_key=True)
@@ -26,23 +18,14 @@ class User(Base):
     region = Column(String(100))
     district = Column(String(100))
     school = Column(String(100))
-    # roleID = Column(Integer, ForeignKey('role.id'))
-    # role = relationship("Role")
     role = Column(Integer)
     joined_at = Column(DateTime)
-
-
-# class Subject(Base):
-#     __tablename__ = 'subject'
-#     subjectID = Column(Integer, primary_key=True)
-#     name = Column(String(100))
 
 
 class Test(Base):
     __tablename__ = 'test'
     testID = Column(Integer, primary_key=True)
     ownerID = Column(BigInteger, ForeignKey('user.id'))
-    # subjectID = Column(Integer, ForeignKey('subject.subjectID'))
     subject = Column(String(100))
     created_at = Column(DateTime)
     started_at = Column(DateTime, nullable=True)
@@ -51,16 +34,6 @@ class Test(Base):
     is_active = Column(Boolean, default=True)
     answers = Column(String(100), nullable=True)
     owner = relationship("User")
-    # subject = relationship("Subject")
-
-
-# class Question(Base):
-#     __tablename__ = 'question'
-#     questionID = Column(Integer, primary_key=True)
-#     testID = Column(Integer, ForeignKey('test.testID'))
-#     answer = Column(Enum("A", "B", "C", "D", "E"))
-#     created_at = Column(DateTime)
-#     test = relationship("Test")
 
 
 class Participation(Base):

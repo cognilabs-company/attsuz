@@ -20,11 +20,11 @@ async def start(message: types.Message, state: FSMContext):
     is_user_registered = await requests.user_is_registered(message.chat.id)
     if is_user_registered[4] == 1:
         msg = messages.test_create_on_start
-        await message.answer(msg)
+        await message.answer(msg, reply_markup=menu_buttons.as_markup(resize_keyboard=True))
         await state.set_state(TestManage.teacher_state)
     elif is_user_registered[4] == 2:
         msg = messages.test_solve_on_start
-        await message.answer(msg)
+        await message.answer(msg, reply_markup=menu_buttons.as_markup(resize_keyboard=True))
         await state.set_state(TestManage.student_state)
     else:
         await bot.send_photo(message.chat.id, intro_file, caption=f"""👋 Assalomu alaykum <b>{first_name}</b> botimizga xush kelibsiz.

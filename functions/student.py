@@ -1,7 +1,6 @@
 from datetime import datetime
 
-from aiogram import Router, types, F
-from aiogram.filters import Command
+from aiogram import Router, types
 from aiogram.fsm.context import FSMContext
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
@@ -17,126 +16,61 @@ router = Router()
 
 @router.message(TestManage.student_state)
 async def solve_test(message: types.Message):
-    is_student = await requests.validate_teacher(message.chat.id)
+    try:
+        is_student = await requests.validate_teacher(message.chat.id)
 
-    if is_student:
-        solution = message.text
-        solution_list = solution.split("*")
-        if len(solution_list) == 2 and solution_list[0].isnumeric():
-            testID = int(solution_list[0])
-            answers = solution_list[1]
-            is_test_exists = await requests.validate_test_request(testID)
-            if is_test_exists:
-                correct_answers = await requests.get_all_correct_answers(testID)
-                score = 0
-                submitted_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        if is_student:
+            solution = message.text
+            solution_list = solution.split("*")
+            if len(solution_list) == 2 and solution_list[0].isnumeric():
+                testID = int(solution_list[0])
+                answers = solution_list[1]
+                is_test_exists = await requests.validate_test_request(testID)
+                is_participated_before = await requests.check_participation_status(message.chat.id, testID)
+                is_test_ended = await requests.is_test_ended(testID)
+                if is_test_exists and not is_test_ended:
+                    if is_participated_before:
+                        await message.answer("Kechirasiz, har bir testga faqat 1 marta qatnashish mumkin.")
+                        return
+                    correct_answers = await requests.get_all_correct_answers(testID)
+                    score = 0
+                    submitted_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-                if len(correct_answers) == len(answers):
-                    for i in range(0, len(correct_answers)):
-                        if correct_answers[i] == answers[i]:
-                            score+=1
-                else:
-                    await message.answer("Kiritilgan javoblar soni savollar soniga to'g'ri kelmadi. Iltimos, yechimingizni boshidan yuboring.")
-                    return
+                    if len(correct_answers) == len(answers):
+                        for i in range(0, len(correct_answers)):
+                            if correct_answers[i] == answers[i]:
+                                score+=1
+                    else:
+                        await message.answer("Kiritilgan javoblar soni savollar soniga to'g'ri kelmadi. Iltimos, yechimingizni boshidan yuboring.")
+                        return
+                    
+                    are_solutions_submitted = await requests.save_participation(message.chat.id, testID, score, submitted_at)
+                    if are_solutions_submitted:
+                        await message.answer("Javoblaringiz qabul qilindi!")
+                        teacher_data = await requests.get_teacher_data(testID)
+                        teacher_id = teacher_data[1]
+                        text = f'Foydalanuvchi <a href="tg://user?id={message.chat.id}">{message.chat.first_name}</a> <b>{testID}</b>-testga yechim yubordi.'
+                        test_status_buttons = InlineKeyboardBuilder()
+                        test_status_buttons.add(types.InlineKeyboardButton(text="Joriy holat", callback_data=f"current_{testID}"), types.InlineKeyboardButton(text="Yakunlash", callback_data=f"finish_{testID}"))
+                        test_status_buttons.adjust(2)
+                        await bot.send_message(teacher_id, text, parse_mode="HTML", reply_markup=test_status_buttons.as_markup())
+                    else:
+                        await message.answer("Javoblarni saqlashda muammo yuzaga keldi.")
+
+                    user_data = await requests.user_is_registered(message.chat.id)
+                    fullname = user_data[0]
+                    school = user_data[3]
                 
-                are_solutions_submitted = await requests.save_participation(message.chat.id, testID, score, submitted_at)
-                if are_solutions_submitted:
-                    await message.answer("Javoblaringiz qabul qilindi!")
+                    score_p = str((score / len(answers)) * 100)[:5]
+                    print(user_data)
+                    await message.answer(messages.student_report(fullname, school, testID, answers, score, score_p, submitted_at), parse_mode="HTML")
+                    await generate_certificate(message.chat.id, testID)
                 else:
-                    await message.answer("Javoblarni saqlashda muammo yuzaga keldi.")
+                    await message.answer("Bunday test mavjud emas yoki allaqachon yakunlangan.")
 
-                user_data = await requests.user_is_registered(message.chat.id)
-                fullname = user_data[0]
-                school = user_data[3]
-            
-                score_p = str((score / len(answers)) * 100)[:5]
-                print(user_data)
-                await message.answer(messages.student_report(fullname, school, testID, answers, score, score_p, submitted_at), parse_mode="HTML")
-                await generate_certificate(message.chat.id, testID)
             else:
-                await message.answer("Bunday test mavjud emas.")
-
+                await message.answer("Iltimos, javoblarni to'g'ri formatda kiriting.")
         else:
-            await message.answer("Iltimos, javoblarni to'g'ri formatda kiriting.")
-    else:
-        await message.answer("Hurmatli foydalanuvchi, siz botda ro'yxatdan o'tmagansiz. Ro'yxatdan o'tish uchun qaytadan /start komandasini bosing.")
-
-
-# @router.message(Command("solve"))
-# async def solve_test(message: types.Message, state: FSMContext):
-#     is_student = await requests.validate_teacher(message.chat.id)
-
-#     if is_student:
-#         await message.answer("Test IDsini 6 xonali son ko'rinishida kiriting, masalan <b>000123</b>:", parse_mode="HTML")
-#     else:
-#         await message.answer("Hurmatli foydalanuvchi, siz botda ro'yxatdan o'tmagansiz. Ro'yxatdan o'tish uchun /register komandasini bosing.")
-
-
-# @router.message(TestSolve.waiting_for_test_id_to_solve)
-# async def get_test_id(message: types.Message, state: FSMContext):
-#     testID = int(message.text)
-#     test_exists = await requests.validate_test_request(testID)
-#     is_test_started = await requests.is_test_started(testID)
-#     is_test_ended = await requests.is_test_ended(testID)
-#     is_participated_before = await requests.check_participation_status(message.chat.id, testID)
-
-#     if test_exists and is_test_started and not is_test_ended:
-#         if is_participated_before:
-#             await message.answer("Kechirasiz, testga faqat 1 marta qatnashish mumkin.")
-#         else:
-#             await state.update_data(testID=testID)
-#             await message.answer("Javoblaringizni kiriting, masalan <b>AABDC</b>:", parse_mode="HTML")
-#             await state.set_state(TestSolve.waiting_for_answers_solution)
-#     else:
-#         await message.answer("Bunday test mavjud emas, yoki bu test boshlanmagan/yakunlangan. Iltimos yana tekshirib ko'ring va qaytadan /solve komandasini bosing.")
-
-
-# @router.message(TestSolve.waiting_for_answers_solution)
-# async def get_answer_solution(message: types.Message, state: FSMContext):
-#     answers = message.text.upper()
-#     await state.update_data(answers=answers)
-#     await message.answer(f"Javoblaringiz: <b>{answers}</b>.", parse_mode="HTML", reply_markup=verify_buttons.as_markup())
-#     await state.set_state(TestSolve.waiting_for_verify_solutions)
-
-
-# @router.callback_query(TestSolve.waiting_for_verify_solutions)
-# async def verify_solution(call: types.CallbackQuery, state: FSMContext):
-#     is_verified = 1 if call.data == "verify" else 0
-#     await call.message.edit_text(f"✅ Tasdiqlandi." if is_verified else "❌ Bekor qilindi.")
-
-#     data = await state.get_data()
-#     submitted_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
-#     correct_answers = await requests.get_all_correct_answers(data['testID'])
-#     student_answers = data['answers']
-#     score = 0
-
-#     if len(correct_answers) == len(student_answers):
-#         for i in range(0, len(correct_answers)):
-#             if correct_answers[i] == student_answers[i]:
-#                 score+=1
-#     else:
-#         await call.message.answer("Kiritilgan javoblar soni savollar soniga to'g'ri kelmadi. Iltimos /solve komandasi orqali boshidan testni yeching.")
-#         await state.clear()
-#         return
-
-#     if is_verified and correct_answers:
-#         are_solutions_submitted = await requests.save_participation(call.message.chat.id, data['testID'], score, submitted_at)
-#         if are_solutions_submitted:
-#             await call.message.answer("Javoblaringiz qabul qilindi!")
-#             await state.clear()
-
-#             user_data = await requests.user_is_registered(call.message.chat.id)
-#             fullname = user_data[0]
-#             school = user_data[3]
-        
-#             score_p = str((score / len(student_answers)) * 100)[:5]
-#             print(user_data)
-#             await call.message.answer(messages.student_report(fullname, school, data['testID'], student_answers, score, score_p, submitted_at), parse_mode="HTML")
-#             await generate_certificate(call.message.chat.id, data['testID'])
-#         else:
-#             call.message.answer("Javoblarni tekshirishda muammo yuzaga keldi.")
-#             await state.clear()
-#     else:
-#         await call.message.answer("Yangi test yaratish uchun /create komandasini bosing.")
-#         await state.clear()
+            await message.answer("Hurmatli foydalanuvchi, siz botda ro'yxatdan o'tmagansiz. Ro'yxatdan o'tish uchun qaytadan /start komandasini bosing.")
+    except Exception as e:
+        await bot.send_message(LOGS_CHANNEL, f"Error in solve_test(): {e}")
