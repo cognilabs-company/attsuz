@@ -6,7 +6,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from db.models import AsyncSession, User
 from states.registration import Registration
-from states.test import TestCreation
+from states.test import TestManage
 from config import *
 from db import requests, messages
 
@@ -89,7 +89,7 @@ async def register_school(message: types.Message, state: FSMContext):
     # Save user to database
     await requests.register_user(message=message, userID=userID, fullname=fullname, region=region, district=district, school=school, role=roleID, joined_at=joined_at)
     await state.clear()
-    await state.set_state(TestCreation.waiting_for_test)
+    await state.set_state(TestManage.teacher_state) if data['role'] == "O'qituvchi" else state.set_state(TestManage.student_state)
 
 
 @router.message(Command("cancel"))

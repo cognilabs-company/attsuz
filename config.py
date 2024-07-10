@@ -41,13 +41,6 @@ button_names = {
 }
 
 
-"""Main menu buttons for new users (not registered)"""
-intro_buttons = ReplyKeyboardBuilder()
-intro_buttons.add(types.KeyboardButton(text=button_names["register"]), types.KeyboardButton(text=button_names["help"]))
-intro_buttons.adjust(2)
-
-
-"""Main Menu buttons for registered teachers"""
 menu_buttons = ReplyKeyboardBuilder()
 menu_buttons.add(*[types.KeyboardButton(text=txt) for txt in list(button_names.values())])
 menu_buttons.adjust(3)

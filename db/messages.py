@@ -32,8 +32,6 @@ help_msg = """☝️ Mazkur bot testlar yechish maqsadida foydalaniladi. O'qituv
 
 <b>O'qituvchi</b>:
 /start - Test yaratish uchun umumiy shablon
-/starttest - Yaratilgan testni boshlash
-/finishtest - Testni tugatish
 
 <b>O'quvchi</b>:
 /start - test yechish uchun umumiy shablon
