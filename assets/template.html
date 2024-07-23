@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Natijalar</title>
+    <style>
+        .header {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">Natijalar</div>
+    <h5>Ushbu hisobot <span style="color: red;">@attsuz_bot</span> orqali tayyorlandi.</h5>
+    <table>
+        <thead>
+            <tr>
+                <th><b>O'rin</b></th>
+                <th><b>Ism-familiya</b></th>
+                <th><b>To'g'ri javoblar soni</b></th>
+                <th><b>Foiz</b></th>
+                <th><b>Topshirilgan vaqti</b></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for student in data %}
+            <tr>
+                <td>{{ student.get("O`rin") }}</td>
+                <td>{{ student.get("Ism-familiya") }}</td>
+                <td>{{ student.get("Natija") }}</td>
+                <td>{{ student.get("Foiz") }}</td>
+                <td>{{ student.get("Topshirilgan vaqt") }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div class="footer">
+        <p>Javoblar: <b><span style="color: red;">{{answers}}</span></b></p>
+    </div>
+</body>
+</html>

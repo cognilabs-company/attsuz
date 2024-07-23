@@ -52,5 +52,11 @@ def test_id_repr(testID):
     # This method converts integer test ID to string representation: 12 -> 000012
     return "0"*(6-len(str(testID)))+str(testID)
 
+def format_simple_table(data):
+    table = "<b>Joriy holat:</b>\n\n"
+    for row in data:
+        table += f"{row['O`rin']}. {row['Ism-familiya']} - {row['Natija']} - {row['Foiz']}%\n"
+    return table
+
 prod_dir = ""
 # prod_dir = "/home/tuya/test-bot-prod/test-bot/"

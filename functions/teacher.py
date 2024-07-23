@@ -49,7 +49,8 @@ async def test_status(callback: types.CallbackQuery):
         status = callback.data.split("_")
         if status[0] == "current":
             testID = int(status[1])
-            await requests.generate_test_report(callback.message, testID)
+            # await requests.generate_test_report(callback.message, testID)
+            await requests.generate_current(callback.message, testID)
         elif status[0] == "finish":
             testID = int(status[1])
             await requests.finish_test(testID)

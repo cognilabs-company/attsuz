@@ -1,5 +1,6 @@
 from datetime import datetime
 import pandas as pd
+import os
 
 from aiogram.types import Message, FSInputFile
 from sqlalchemy import update
@@ -192,7 +193,23 @@ async def save_participation(userID, testID, score, submitted_at):
             return False
         
 
-async def generate_test_report(message: types.Message, testID: int):
+async def get_numof_test_answers(testID: int):
+    async with AsyncSession() as session:
+        stmt = select(
+            Test.answers
+        ).where(Test.testID == testID)
+        try:
+            result = await session.execute(stmt)
+            res = result.fetchone()
+            print(res)
+
+            return res[0]
+        except Exception as e:
+            await bot.send_message(LOGS_CHANNEL, f"Error in generate_test_report(): {e}")
+            return None
+
+
+async def get_test_results(testID):
     async with AsyncSession() as session:
         stmt = select(
         Participation.userID, User.fullname, User.region, User.district, User.school, Test.subject, 
@@ -201,37 +218,55 @@ async def generate_test_report(message: types.Message, testID: int):
             User, Participation.userID == User.id
         ).join(
             Test, Participation.testID == Test.testID
-        ).where(Test.testID == testID)
+        ).where(Test.testID == testID).order_by(Participation.score.desc())
         try:
             result = await session.execute(stmt)
             results = result.fetchall()
+            print(results)
+            answers = await get_numof_test_answers(testID)
+            num_of_answers = len(answers)
+            print(num_of_answers)
 
             data = [{
-                'userID': row.userID,
-                'fullname': row.fullname,
-                'region': row.region,
-                'district': row.district,
-                'school': row.school,
-                'subject': row.subject,
-                'testID': row.testID,
-                'submitted_at': row.submitted_at,
-                'score': row.score
-            } for row in results]
+                'O`rin': idx + 1,
+                'Ism-familiya': row.fullname,
+                'Natija': row.score,
+                'Foiz': str((row.score / num_of_answers) * 100)[:5],
+                'Topshirilgan vaqt': row.submitted_at
+            } for idx, row in enumerate(results)]
 
-            df = pd.DataFrame(data)
-            csv_path = f"{prod_dir}assets/excel/test{test_id_repr(testID)}.csv"
-
-            if not df.empty:
-                df.to_csv(csv_path, index=False)
-                print(f"Data exported to 'data.csv' successfully!")
-                csv_inputfile = FSInputFile(csv_path)
-                await bot.send_document(message.chat.id, csv_inputfile, caption="📊 Natijalarni yuklab oling.")
-                os.remove(csv_path)
-            else:
-                await bot.send_message(message.chat.id, text="Kechirasiz, bu testga hech kim qatnashmagani sabab natijalar mavjud emas.")
-            
-            return True
-
+            return data, answers
         except Exception as e:
             await bot.send_message(LOGS_CHANNEL, f"Error in generate_test_report(): {e}")
             return False
+
+
+async def generate_current(message: types.Message, testID: int):
+    raw = await get_test_results(testID)
+    data = raw[0]
+    table_text = format_simple_table(data)
+
+    await message.answer(table_text, parse_mode="HTML")
+
+
+from jinja2 import Environment, FileSystemLoader
+
+template_dir = os.path.join(os.path.dirname(__file__), '../assets')
+jinja_env = Environment(loader=FileSystemLoader(template_dir))
+template = jinja_env.get_template('template.html')
+
+async def generate_test_report(message: types.Message, testID: int):
+    raw = await get_test_results(testID)
+    data = raw[0]
+    answers = raw[1]
+    rendered_html = template.render(data=data, answers=answers)
+
+    output_file_path = os.path.join(os.path.dirname(__file__), f'test{testID}.html')
+    with open(output_file_path, 'w', encoding='utf-8') as f:
+        f.write(rendered_html)
+    document = FSInputFile(output_file_path)
+    
+    await bot.send_document(message.chat.id, document, caption="🏁 Yakuniy natijalar")
+    os.remove(output_file_path)
+
+    # await message.answer(rendered_html, parse_mode=ParseMode.HTML)
