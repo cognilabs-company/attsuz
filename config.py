@@ -63,8 +63,8 @@ def format_simple_table(data):
         table += f"{row['O`rin']}. {row['Ism-familiya']} - {row['Natija']} - {row['Foiz']}%\n"
     return table
 
-prod_dir = ""
-# prod_dir = "/home/tuya/test-bot-prod/test-bot/"
+# prod_dir = ""
+prod_dir = "/home/tuya/attsuz/"
 
 
 async def check_subscription(userID):
