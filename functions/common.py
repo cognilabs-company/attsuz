@@ -18,6 +18,11 @@ async def start(message: types.Message, state: FSMContext):
     intro_file = FSInputFile(intro_photo_path)
     
     is_user_registered = await requests.user_is_registered(message.chat.id)
+    is_user_subscribed = await check_subscription(message.chat.id)
+    if not is_user_subscribed:
+        await message.answer("Iltimos, botdan foydalanish uchun quyidagi kanallarga a'zo bo'ling:", reply_markup=subs_buttons.as_markup())
+        await message.answer("A'zo bo'lgach, qaytadan /start komandasini bosing.")
+        return
     if is_user_registered[4] == 1:
         msg = messages.test_create_on_start
         await message.answer(msg, reply_markup=menu_buttons.as_markup(resize_keyboard=True))

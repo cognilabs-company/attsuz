@@ -1,7 +1,7 @@
 import os
 
 from aiogram import types
-from aiogram.utils.keyboard import ReplyKeyboardBuilder
+from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
 from dotenv import load_dotenv
 from aiogram import Bot
 
@@ -14,6 +14,11 @@ DB_NAME = os.getenv("DB_NAME")
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 LOGS_CHANNEL = os.getenv("LOGS_CHANNEL")
+SUBS_CHANNEL_1 = os.getenv("SUBS_CHANNEL_1")
+SUBS_CHANNEL_2 = os.getenv("SUBS_CHANNEL_2")
+
+SUBS_LINK_1 = "https://t.me/milliymathonline"
+SUBS_LINK_2 = "https://t.me/Prezident_maktablari_uzz"
 
 
 roles = ["O'qituvchi", "O'quvchi"]
@@ -60,3 +65,19 @@ def format_simple_table(data):
 
 prod_dir = ""
 # prod_dir = "/home/tuya/test-bot-prod/test-bot/"
+
+
+async def check_subscription(userID):
+    try:
+        member1 = await bot.get_chat_member(chat_id=SUBS_CHANNEL_1, user_id=userID)
+        member2 = await bot.get_chat_member(chat_id=SUBS_CHANNEL_2, user_id=userID)
+        print(member1, member2)
+        return member1.status in ['member', 'administrator', 'creator'] and member2.status in ['member', 'administrator', 'creator']
+    except Exception as e:
+        print(e)
+        return False
+    
+subs_buttons = InlineKeyboardBuilder()
+subs1 = types.InlineKeyboardButton(text="1-kanal", url=f"{SUBS_LINK_1}")
+subs2 = types.InlineKeyboardButton(text="2-kanal", url=f"{SUBS_LINK_2}")
+subs_buttons.add(subs1, subs2)
